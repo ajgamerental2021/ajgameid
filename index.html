@@ -210,7 +210,6 @@
           <button class="lang-btn active" id="langThBtn" type="button">ไทย</button>
           <button class="lang-btn" id="langEnBtn" type="button">EN</button>
         </div>
-        <button class="ghost-btn" id="copyLineBtn" type="button">คัดลอกลิงก์ LINE</button>
         <button class="ghost-btn" id="openAdminBtn" type="button">Admin</button>
       </div>
     </div>
@@ -496,17 +495,17 @@
         statusPlaceholder: 'เช่น ว่าง หรือ คิวเต็ม\nจะว่าง 30/04/2026',
         deleteConfirm: 'ลบรายการ ID #{{id}} ใช่ไหม?',
         resetConfirm: 'รีเซ็ตกลับเป็นข้อมูลตั้งต้นจากไฟล์ Excel ใช่ไหม?',
-        lineMessageRentIntro: 'สวัสดีครับ สนใจเช่าไอดีเกม PS5',
-        lineMessageReserveIntro: 'สวัสดีครับ สนใจจองล่วงหน้าไอดีเกม PS5',
-        lineFieldGame: 'เกม',
-        lineFieldId: 'ลำดับไอดี',
-        lineFieldType: 'ประเภท',
-        lineFieldDays: 'จำนวนวัน',
-        lineFieldPrice: 'ราคา',
-        lineFieldStatus: 'สถานะหน้าเว็บ',
-        lineFieldStart: 'วันเริ่มเช่าโดยประมาณ',
-        lineFieldEnd: 'วันสิ้นสุดโดยประมาณ',
-        lineMessageFooter: 'รบกวนแอดมินเช็กคิวและยืนยันให้หน่อยครับ',
+        lineMessageRentIntro: '🎮 สวัสดีครับ สนใจเช่าไอดีเกม PS5',
+        lineMessageReserveIntro: '📅 สวัสดีครับ สนใจจองล่วงหน้าไอดีเกม PS5',
+        lineFieldGame: '🎮 เกม',
+        lineFieldId: '🆔 ลำดับไอดี',
+        lineFieldType: '👤 ประเภท',
+        lineFieldDays: '🗓️ จำนวนวัน',
+        lineFieldPrice: '💵 ราคา',
+        lineFieldStatus: '📌 สถานะหน้าเว็บ',
+        lineFieldStart: '▶️ วันเริ่มเช่าโดยประมาณ',
+        lineFieldEnd: '⏹️ วันสิ้นสุดโดยประมาณ',
+        lineMessageFooter: '🙏 รบกวนแอดมินเช็กคิวและยืนยันให้หน่อยครับ',
         loginSecureNote: ''
       },
       en: {
@@ -632,16 +631,16 @@
         statusPlaceholder: 'e.g. Available or Fully booked\nAvailable on 30/04/2026',
         deleteConfirm: 'Delete ID #{{id}}?',
         resetConfirm: 'Reset back to the original Excel data?',
-        lineMessageRentIntro: 'Hello, I would like to rent a PS5 game ID.',
-        lineMessageReserveIntro: 'Hello, I would like to reserve a PS5 game ID in advance.',
-        lineFieldGame: 'Game',
+        lineMessageRentIntro: '🎮 Hello, I would like to rent a PS5 game ID.',
+        lineMessageReserveIntro: '📅 Hello, I would like to reserve a PS5 game ID in advance.',
+        lineFieldGame: '🎮 Game',
         lineFieldId: 'ID number',
-        lineFieldType: 'Type',
-        lineFieldDays: 'Duration',
-        lineFieldPrice: 'Price',
+        lineFieldType: '👤 Type',
+        lineFieldDays: '🗓️ Duration',
+        lineFieldPrice: '💵 Price',
         lineFieldStatus: 'Website status',
-        lineFieldStart: 'Estimated start date',
-        lineFieldEnd: 'Estimated end date',
+        lineFieldStart: '▶️ Estimated start date',
+        lineFieldEnd: '⏹️ Estimated end date',
         lineMessageFooter: 'Please help check the queue and confirm it for me. Thank you.',
         loginSecureNote: 'Note: this login hides credentials as hashes in the HTML file, not with a real server-side auth system.'
       }
@@ -1058,12 +1057,37 @@
     }
 
     async function handleLine(item, offer) {
-      const message = buildMessage(item, offer);
-      const copied = await copyText(message);
-      const shareUrl = `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
-      window.open(shareUrl, '_blank', 'noopener');
-      setTimeout(() => window.open(CONFIG.lineUrl, '_blank', 'noopener'), 320);
-      showToast(copied ? tr('lineToastCopied') : tr('lineToastOpen'));
+      const offerState = getOfferState(offer);
+      const windowInfo = getBookingWindow(offer, item);
+      const intro = item?.notReady ? tr('lineMessageReserveIntro') : (windowInfo.mode === 'rent' ? tr('lineMessageRentIntro') : tr('lineMessageReserveIntro'));
+
+      const message = [
+        intro,
+        '',
+        `${tr('lineFieldGame')}: ${item.title}`,
+        `${tr('lineFieldId')}: ID #${item.idNo}`,
+        `${tr('lineFieldType')}: ${localizeTypeLabel(offer.typeLabel)}`,
+        `${tr('lineFieldDays')}: ${offer.days} ${tr('daysUnit')}`,
+        `${tr('lineFieldPrice')}: ${formatPrice(offer.price)}`,
+        `${tr('lineFieldStatus')}: ${item?.notReady ? tr('notReadyDate', { date: formatDateForDisplay(item?.readyDate) || '-' }) : offerState.whenText}`,
+        `${tr('lineFieldStart')}: ${windowInfo.start}`,
+        `${tr('lineFieldEnd')}: ${windowInfo.end}`,
+        '',
+        tr('lineMessageFooter')
+      ].join('
+');
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(message);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+
+      const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
+      window.open(lineUrl, '_blank', 'noopener,noreferrer');
+      showToast(tr('lineToastCopied'));
     }
 
     function filterItems() {
@@ -1613,11 +1637,6 @@
 
       el.langThBtn.addEventListener('click', () => { currentLang = 'th'; applyLanguage(); });
       el.langEnBtn.addEventListener('click', () => { currentLang = 'en'; applyLanguage(); });
-
-      document.getElementById('copyLineBtn').addEventListener('click', async () => {
-        const copied = await copyText(CONFIG.lineUrl);
-        showToast(copied ? tr('copyLineToast') : CONFIG.lineUrl);
-      });
 
       document.getElementById('openAdminBtn').addEventListener('click', openAdmin);
       document.getElementById('closeAdminBtn').addEventListener('click', closeAdmin);
