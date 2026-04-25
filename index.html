@@ -239,7 +239,7 @@
       </div>
       <div class="results-meta">
         <div id="resultsMetaText">กำลังโหลดรายการ...</div>
-        <div class="muted" id="resultsHintText">สถานะคิวแยกตามแพ็กเกจแต่ละประเภท และกำหนดจำนวนช่องของไอดีลูกค้าได้จากหน้า Admin</div>
+        <div class="muted" id="resultsHintText"></div>
       </div>
     </section>
     <section id="results" class="results-grid"></section>
@@ -1074,8 +1074,7 @@
         `${tr('lineFieldEnd')}: ${windowInfo.end}`,
         '',
         tr('lineMessageFooter')
-      ].join('
-');
+      ].join('\\n');
 
       try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
