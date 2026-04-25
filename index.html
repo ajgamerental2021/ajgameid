@@ -995,6 +995,17 @@
       return `${dd}/${mm}/${yyyy}`;
     }
 
+    function parseIsoLikeDate(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return null;
+      const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+      const th = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (th) return new Date(Number(th[3]), Number(th[2]) - 1, Number(th[1]));
+      const d = new Date(raw);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
     function parseDdMmYyyy(text) {
       if (!text) return null;
       const m = String(text).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
@@ -1019,12 +1030,32 @@
       return d;
     }
 
-    function getRentalWindow(offer) {
+    function getRentalWindow(offer, item = null) {
       const state = getOfferState(offer);
       const parsed = parseStatusText(state.statusText);
-      const start = state.available ? new Date() : (parseDdMmYyyy(parsed.availableDate) || new Date());
-      const end = addDays(start, Math.max(0, Number(state.days || 0) - 1));
-      return { start: ddmmyyyy(start), end: ddmmyyyy(end), mode: state.available ? 'rent' : 'reserve' };
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      let start;
+      if (item?.notReady) {
+        const ready = parseIsoLikeDate(item?.readyDate);
+        if (ready) {
+          ready.setHours(0,0,0,0);
+          start = ready > today ? ready : today;
+        } else {
+          start = new Date(today);
+        }
+      } else {
+        start = state.available ? new Date(today) : (parseDdMmYyyy(parsed.availableDate) || new Date(today));
+      }
+
+      const end = new Date(start);
+      end.setDate(end.getDate() + Math.max(1, Number(state.days || offer?.days || 1)) - 1);
+      return { start: ddmmyyyy(start), end: ddmmyyyy(end), mode: (state.available && !item?.notReady) ? 'rent' : 'reserve' };
+    }
+
+    function getBookingWindow(offer, item = null) {
+      return getRentalWindow(offer, item);
     }
 
     function buildMessage(item, offer) {
@@ -1059,7 +1090,9 @@
     async function handleLine(item, offer) {
       const offerState = getOfferState(offer);
       const windowInfo = getBookingWindow(offer, item);
-      const intro = item?.notReady ? tr('lineMessageReserveIntro') : (windowInfo.mode === 'rent' ? tr('lineMessageRentIntro') : tr('lineMessageReserveIntro'));
+      const intro = item?.notReady
+        ? tr('lineMessageReserveIntro')
+        : (windowInfo.mode === 'rent' ? tr('lineMessageRentIntro') : tr('lineMessageReserveIntro'));
 
       const message = [
         intro,
@@ -1074,19 +1107,40 @@
         `${tr('lineFieldEnd')}: ${windowInfo.end}`,
         '',
         tr('lineMessageFooter')
-      ].join('\\n');
+      ].join('
+');
 
+      let copied = false;
       try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(message);
+          copied = true;
         }
       } catch (err) {
-        console.error(err);
+        console.warn('clipboard failed', err);
+      }
+
+      if (!copied) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = message;
+          ta.setAttribute('readonly', '');
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          ta.style.pointerEvents = 'none';
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          copied = document.execCommand('copy');
+          ta.remove();
+        } catch (err) {
+          console.warn('fallback copy failed', err);
+        }
       }
 
       const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
-      window.open(lineUrl, '_blank', 'noopener,noreferrer');
-      showToast(tr('lineToastCopied'));
+      window.location.href = lineUrl;
+      showToast(copied ? tr('lineToastCopied') : tr('lineToastOpen'));
     }
 
     function filterItems() {
