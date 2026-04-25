@@ -295,7 +295,7 @@
               <button class="ghost-btn" id="pullSyncBtn" type="button">Pull Gist</button>
               <button class="primary-btn" id="pushSyncBtn" type="button">Push Gist</button>
             </div>
-            <div class="muted" id="syncHintText" style="font-size:.85rem;">ใส่ Gist ID เหมือนกันทุกเครื่อง และใส่ GitHub token บนเครื่องที่ต้องการอัปเดตข้อมูลขึ้น Gist</div>
+            <div class="muted" id="syncHintText" style="font-size:.85rem;">ไฟล์นี้ฝัง Gist ID 802f3a4e9b999023127241fd8a85da57 ไว้แล้ว และจะดึงข้อมูลอัตโนมัติตอนรีเฟรชหน้าเว็บ ถ้าต้องการ push การอัปเดตขึ้น Gist ให้ใส่ GitHub token</div>
           </div>
         </div>
 
@@ -410,7 +410,7 @@
         syncSave: 'Save Gist ID & Token',
         syncPull: 'Pull Gist',
         syncPush: 'Push Gist',
-        syncHint: 'Use the same Gist ID on every device, and add a GitHub token on devices that should push updates to the Gist.',
+        syncHint: 'This file already embeds Gist ID 802f3a4e9b999023127241fd8a85da57 and auto-pulls on refresh. Add a GitHub token if this device should push updates back to the Gist.',
         syncSaved: 'Saved Gist ID and token',
         syncCreated: 'Gist created successfully',
         syncPulled: 'Pulled data from Gist',
@@ -429,7 +429,7 @@
         syncSave: 'บันทึก Gist ID และ Token',
         syncPull: 'ดึงจาก Gist',
         syncPush: 'อัปเดตขึ้น Gist',
-        syncHint: 'ใส่ Gist ID เหมือนกันทุกเครื่อง และใส่ GitHub token บนเครื่องที่ต้องการอัปเดตข้อมูลขึ้น Gist',
+        syncHint: 'ไฟล์นี้ฝัง Gist ID 802f3a4e9b999023127241fd8a85da57 ไว้แล้ว และจะดึงข้อมูลอัตโนมัติตอนรีเฟรชหน้าเว็บ ถ้าต้องการ push การอัปเดตขึ้น Gist ให้ใส่ GitHub token',
         syncSaved: 'บันทึก Gist ID และ Token แล้ว',
         syncCreated: 'สร้าง Gist สำเร็จแล้ว',
         syncPulled: 'ดึงข้อมูลจาก Gist แล้ว',
@@ -565,7 +565,7 @@
         syncSave: 'บันทึก Gist ID และ Token',
         syncPull: 'ดึงจาก Gist',
         syncPush: 'อัปเดตขึ้น Gist',
-        syncHint: 'ใส่ Gist ID เหมือนกันทุกเครื่อง และใส่ GitHub token บนเครื่องที่ต้องการอัปเดตข้อมูลขึ้น Gist',
+        syncHint: 'ไฟล์นี้ฝัง Gist ID 802f3a4e9b999023127241fd8a85da57 ไว้แล้ว และจะดึงข้อมูลอัตโนมัติตอนรีเฟรชหน้าเว็บ ถ้าต้องการ push การอัปเดตขึ้น Gist ให้ใส่ GitHub token',
         syncSaved: 'บันทึก Gist ID และ Token แล้ว',
         syncCreated: 'สร้าง Gist สำเร็จแล้ว',
         syncPulled: 'ดึงข้อมูลจาก Gist แล้ว',
@@ -778,9 +778,9 @@
     function loadSyncSettings() {
       try {
         const raw = localStorage.getItem(SYNC_SETTINGS_KEY);
-        return raw ? JSON.parse(raw) : { gistId: '', filename: 'aj-ps5-game-id-data.json', token: '', autoSync: false };
+        return raw ? JSON.parse(raw) : { gistId: '802f3a4e9b999023127241fd8a85da57', filename: 'aj-ps5-game-id-data.json', token: '', autoSync: true };
       } catch (err) {
-        return { gistId: '', filename: 'aj-ps5-game-id-data.json', token: '', autoSync: false };
+        return { gistId: '802f3a4e9b999023127241fd8a85da57', filename: 'aj-ps5-game-id-data.json', token: '', autoSync: true };
       }
     }
 
@@ -795,10 +795,10 @@
 
     function fillSyncForm() {
       const s = loadSyncSettings();
-      if (el.syncGistIdInput) el.syncGistIdInput.value = s.gistId || '';
+      if (el.syncGistIdInput) el.syncGistIdInput.value = s.gistId || '802f3a4e9b999023127241fd8a85da57';
       if (el.syncFileInput) el.syncFileInput.value = s.filename || 'aj-ps5-game-id-data.json';
       if (el.syncTokenInput) el.syncTokenInput.value = s.token || '';
-      if (el.syncAutoCheckbox) el.syncAutoCheckbox.checked = !!s.autoSync;
+      if (el.syncAutoCheckbox) el.syncAutoCheckbox.checked = (typeof s.autoSync === 'boolean' ? s.autoSync : true);
     }
 
     function saveSyncSettings() {
@@ -941,6 +941,10 @@
 
     async function bootSync() {
       fillSyncForm();
+      const existingSyncRaw = localStorage.getItem(SYNC_SETTINGS_KEY);
+      if (!existingSyncRaw) {
+        localStorage.setItem(SYNC_SETTINGS_KEY, JSON.stringify({ gistId: '802f3a4e9b999023127241fd8a85da57', filename: 'aj-ps5-game-id-data.json', token: '', autoSync: true }));
+      }
       const s = loadSyncSettings();
       if (s.autoSync && s.gistId) {
         await pullFromGist(s, true);
@@ -1661,6 +1665,22 @@
 
       el.adminShell.addEventListener('click', e => {
         if (e.target === el.adminShell) closeAdmin();
+      });
+
+      window.addEventListener('focus', async () => {
+        const s = loadSyncSettings();
+        if (s.autoSync && s.gistId) {
+          await pullFromGist(s, true);
+        }
+      });
+
+      document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible') {
+          const s = loadSyncSettings();
+          if (s.autoSync && s.gistId) {
+            await pullFromGist(s, true);
+          }
+        }
       });
     }
 
