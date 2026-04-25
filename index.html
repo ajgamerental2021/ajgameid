@@ -702,6 +702,15 @@
       if (node) node.textContent = tr(key, vars);
     }
 
+    function formatPrice(value) {
+      const n = Number(value || 0);
+      try {
+        return `${n.toLocaleString(currentLang === 'th' ? 'th-TH' : 'en-US')} ${tr('baht')}`;
+      } catch (err) {
+        return `${n} ${tr('baht')}`;
+      }
+    }
+
     function escapeJsString(value) {
       return String(value ?? '')
         .replaceAll('\\', '\\\\')
@@ -1066,10 +1075,6 @@
         end: ddmmyyyy(end),
         mode: (hydrated.available && !item?.notReady) ? 'rent' : 'reserve'
       };
-    }
-
-    function getBookingWindow(offer, item = null) {
-      return getRentalWindow(offer, item);
     }
 
     function getBookingWindow(offer, item = null) {
