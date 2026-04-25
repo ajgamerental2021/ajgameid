@@ -702,6 +702,14 @@
       if (node) node.textContent = tr(key, vars);
     }
 
+    function escapeJsString(value) {
+      return String(value ?? '')
+        .replaceAll('\\', '\\\\')
+        .replaceAll("'", "\\'")
+        .replaceAll('\n', '\\n')
+        .replaceAll('\r', '');
+    }
+
     function escapeHtml(value) {
       return String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
     }
@@ -1031,27 +1039,37 @@
     }
 
     function getRentalWindow(offer, item = null) {
-      const state = getOfferState(offer);
-      const parsed = parseStatusText(state.statusText);
+      const hydrated = hydrateOffer(offer);
+      const parsed = parseStatusText(hydrated.statusText);
       const today = new Date();
-      today.setHours(0,0,0,0);
+      today.setHours(0, 0, 0, 0);
 
       let start;
       if (item?.notReady) {
         const ready = parseIsoLikeDate(item?.readyDate);
         if (ready) {
-          ready.setHours(0,0,0,0);
+          ready.setHours(0, 0, 0, 0);
           start = ready > today ? ready : today;
         } else {
           start = new Date(today);
         }
+      } else if (hydrated.available) {
+        start = new Date(today);
       } else {
-        start = state.available ? new Date(today) : (parseDdMmYyyy(parsed.availableDate) || new Date(today));
+        start = parseDdMmYyyy(parsed.availableDate) || new Date(today);
       }
 
       const end = new Date(start);
-      end.setDate(end.getDate() + Math.max(1, Number(state.days || offer?.days || 1)) - 1);
-      return { start: ddmmyyyy(start), end: ddmmyyyy(end), mode: (state.available && !item?.notReady) ? 'rent' : 'reserve' };
+      end.setDate(end.getDate() + Math.max(1, Number(hydrated.days || 1)) - 1);
+      return {
+        start: ddmmyyyy(start),
+        end: ddmmyyyy(end),
+        mode: (hydrated.available && !item?.notReady) ? 'rent' : 'reserve'
+      };
+    }
+
+    function getBookingWindow(offer, item = null) {
+      return getRentalWindow(offer, item);
     }
 
     function getBookingWindow(offer, item = null) {
@@ -1088,81 +1106,58 @@
     }
 
     async function handleLine(item, offer) {
+      const offerState = getOfferState(offer);
+      const windowInfo = getBookingWindow(offer, item);
+      const intro = item?.notReady
+        ? tr('lineMessageReserveIntro')
+        : (windowInfo.mode === 'rent' ? tr('lineMessageRentIntro') : tr('lineMessageReserveIntro'));
+
+      const message = [
+        intro,
+        '',
+        `${tr('lineFieldGame')}: ${item.title}`,
+        `${tr('lineFieldId')}: ID #${item.idNo}`,
+        `${tr('lineFieldType')}: ${localizeTypeLabel(offer.typeLabel)}`,
+        `${tr('lineFieldDays')}: ${offer.days} ${tr('daysUnit')}`,
+        `${tr('lineFieldPrice')}: ${formatPrice(offer.price)}`,
+        `${tr('lineFieldStatus')}: ${item?.notReady ? tr('notReadyDate', { date: formatDateForDisplay(item?.readyDate) || '-' }) : offerState.whenText}`,
+        `${tr('lineFieldStart')}: ${windowInfo.start}`,
+        `${tr('lineFieldEnd')}: ${windowInfo.end}`,
+        '',
+        tr('lineMessageFooter')
+      ].join('\\n');
+
+      let copied = false;
       try {
-        const offerState = getOfferState(offer);
-        const windowInfo = getBookingWindow(offer, item);
-        const intro = item?.notReady
-          ? tr('lineMessageReserveIntro')
-          : (windowInfo.mode === 'rent' ? tr('lineMessageRentIntro') : tr('lineMessageReserveIntro'));
-
-        const message = [
-          intro,
-          '',
-          `${tr('lineFieldGame')}: ${item?.title || '-'}`,
-          `${tr('lineFieldId')}: ID #${item?.idNo || '-'}`,
-          `${tr('lineFieldType')}: ${localizeTypeLabel(offer?.typeLabel)}`,
-          `${tr('lineFieldDays')}: ${offer?.days || '-'} ${tr('daysUnit')}`,
-          `${tr('lineFieldPrice')}: ${formatPrice(offer?.price || 0)}`,
-          `${tr('lineFieldStatus')}: ${item?.notReady ? tr('notReadyDate', { date: formatDateForDisplay(item?.readyDate) || '-' }) : (offerState?.whenText || '-')}`,
-          `${tr('lineFieldStart')}: ${windowInfo?.start || '-'}`,
-          `${tr('lineFieldEnd')}: ${windowInfo?.end || '-'}`,
-          '',
-          tr('lineMessageFooter')
-        ].join('
-');
-
-        let copied = false;
-
-        try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(message);
-            copied = true;
-          }
-        } catch (err) {
-          console.warn('clipboard api failed', err);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(message);
+          copied = true;
         }
-
-        if (!copied) {
-          try {
-            const ta = document.createElement('textarea');
-            ta.value = message;
-            ta.setAttribute('readonly', '');
-            ta.style.position = 'fixed';
-            ta.style.top = '-9999px';
-            ta.style.opacity = '0';
-            document.body.appendChild(ta);
-            ta.focus();
-            ta.select();
-            copied = document.execCommand('copy');
-            ta.remove();
-          } catch (err) {
-            console.warn('execCommand copy failed', err);
-          }
-        }
-
-        const lineUrl = 'https://line.me/R/msg/text/?' + encodeURIComponent(message);
-
-        let opened = null;
-        try {
-          opened = window.open(lineUrl, '_blank');
-        } catch (err) {
-          console.warn('window.open failed', err);
-        }
-
-        if (!opened) {
-          try {
-            window.location.assign(lineUrl);
-          } catch (err) {
-            console.error('LINE redirect failed', err);
-            alert('ไม่สามารถเปิด LINE ได้อัตโนมัติ แต่ข้อความถูกเตรียมไว้แล้ว');
-          }
-        }
-
-        showToast(copied ? tr('lineToastCopied') : tr('lineToastOpen'));
       } catch (err) {
-        console.error('handleLine failed', err);
-        alert('เกิดข้อผิดพลาดตอนเตรียมข้อความสำหรับ LINE');
+        console.warn('clipboard failed', err);
       }
+
+      if (!copied) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = message;
+          ta.setAttribute('readonly', '');
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          ta.style.pointerEvents = 'none';
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          copied = document.execCommand('copy');
+          ta.remove();
+        } catch (err) {
+          console.warn('fallback copy failed', err);
+        }
+      }
+
+      const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
+      window.location.href = lineUrl;
+      showToast(copied ? tr('lineToastCopied') : tr('lineToastOpen'));
     }
 
     function filterItems() {
@@ -1190,6 +1185,80 @@
         availableOffers: allOffers.filter(isOfferAvailable).length,
         resultCount: items.length
       };
+    }
+
+    
+    async function handleLineShare(itemId, offerIndex) {
+      try {
+        const item = state.find(x => Number(x.idNo) === Number(itemId));
+        const offer = item?.offers?.[Number(offerIndex)];
+        if (!item || !offer) {
+          alert('ไม่พบข้อมูลรายการนี้');
+          return false;
+        }
+
+        const offerState = getOfferState(offer);
+        const windowInfo = getBookingWindow(offer, item);
+        const intro = item?.notReady
+          ? tr('lineMessageReserveIntro')
+          : (windowInfo.mode === 'rent' ? tr('lineMessageRentIntro') : tr('lineMessageReserveIntro'));
+
+        const statusLine = item?.notReady
+          ? tr('notReadyDate', { date: formatDateForDisplay(item?.readyDate) || '-' })
+          : (offerState?.whenText || '-');
+
+        const message = [
+          intro,
+          '',
+          `${tr('lineFieldGame')}: ${item.title}`,
+          `${tr('lineFieldId')}: ID #${item.idNo}`,
+          `${tr('lineFieldType')}: ${localizeTypeLabel(offer.typeLabel)}`,
+          `${tr('lineFieldDays')}: ${offer.days} ${tr('daysUnit')}`,
+          `${tr('lineFieldPrice')}: ${formatPrice(offer.price)}`,
+          `${tr('lineFieldStatus')}: ${statusLine}`,
+          `${tr('lineFieldStart')}: ${windowInfo.start}`,
+          `${tr('lineFieldEnd')}: ${windowInfo.end}`,
+          '',
+          tr('lineMessageFooter')
+        ].join('\n');
+
+        let copied = false;
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(message);
+            copied = true;
+          }
+        } catch (err) {
+          console.warn('clipboard api failed', err);
+        }
+
+        if (!copied) {
+          try {
+            const ta = document.createElement('textarea');
+            ta.value = message;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.top = '-9999px';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            copied = document.execCommand('copy');
+            ta.remove();
+          } catch (err) {
+            console.warn('fallback copy failed', err);
+          }
+        }
+
+        const lineUrl = 'https://line.me/R/msg/text/?' + encodeURIComponent(message);
+        window.location.href = lineUrl;
+        showToast(copied ? tr('lineToastCopied') : tr('lineToastOpen'));
+        return false;
+      } catch (err) {
+        console.error('LINE share failed', err);
+        alert('เกิดข้อผิดพลาดตอนเตรียมข้อความสำหรับ LINE');
+        return false;
+      }
     }
 
     function renderCard(item) {
@@ -1222,7 +1291,7 @@
                     : `<span class="status-badge ${offerState.badgeClass}">${escapeHtml(offerState.statusLabel)}</span>`
                 }
               </div>
-              <button class="primary-btn" data-line-action="1" data-item-id="${item.idNo}" data-offer-index="${offerIndex}" type="button">${btnLabel}</button>
+              <button class="primary-btn" type="button" onclick="return handleLineShare(${item.idNo}, ${offerIndex})">${btnLabel}</button>
             </div>
           </div>
         `;
@@ -1283,23 +1352,6 @@
           btn.classList.add('active');
         });
       });
-
-      document.querySelectorAll('[data-line-action]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (btn.getAttribute('data-line-action') !== '1') return;
-          const itemId = Number(btn.getAttribute('data-item-id'));
-          const offerIndex = Number(btn.getAttribute('data-offer-index'));
-          const item = state.find(x => x.idNo === itemId);
-          const offer = item?.offers?.[offerIndex];
-          if (!item || !offer) {
-            console.error('LINE button missing item/offer', { itemId, offerIndex });
-            alert('ไม่พบข้อมูลรายการนี้');
-            return;
-          }
-          handleLine(item, offer);
-        });
       });
     }
 
