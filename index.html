@@ -386,12 +386,12 @@
         typeGame: 'ไอดีเกม',
         daysUnit: 'วัน',
         baht: 'บาท',
-        availableBadge: 'ว่างตอนนี้',
+        availableBadge: '✅ ว่างตอนนี้',
         availableNow: 'ว่างตอนนี้',
         soonBadge: 'ใกล้ว่าง',
         busyBadge: 'ยังไม่ว่าง',
-        availableOn: 'จะว่าง {{date}}',
-        fullNow: 'คิวเต็ม',
+        availableOn: 'พร้อมใช้งานวันที่ {{date}}',
+        fullNow: 'ยังไม่ว่าง',
         rentNow: 'เช่าเลย',
         reserve: 'จองล่วงหน้า',
         lineToastOpen: 'เปิด LINE ให้แล้ว',
@@ -492,7 +492,7 @@
         packageStatus: 'สถานะ',
         packageExample: 'ตัวอย่าง: ถ้ามีไอดีลูกค้า 2 ช่อง และถูกจองไป 1 ช่อง ให้ใส่ “จำนวนช่องทั้งหมด = 2” และ “ช่องที่ถูกจองแล้ว = 1” พร้อมสถานะเป็น “ว่าง”',
         removePackage: 'ลบแพ็กเกจนี้',
-        statusPlaceholder: 'เช่น ว่าง หรือ คิวเต็ม\nจะว่าง 30/04/2026',
+        statusPlaceholder: 'เช่น ว่าง หรือ ยังไม่ว่าง\nพร้อมใช้งานวันที่ 30/04/2026',
         deleteConfirm: 'ลบรายการ ID #{{id}} ใช่ไหม?',
         resetConfirm: 'รีเซ็ตกลับเป็นข้อมูลตั้งต้นจากไฟล์ Excel ใช่ไหม?',
         lineMessageRentIntro: '🎮 สวัสดีครับ สนใจเช่าไอดีเกม PS5',
@@ -541,12 +541,12 @@
         typeGame: 'Game ID',
         daysUnit: 'days',
         baht: 'THB',
-        availableBadge: 'Available',
+        availableBadge: '✅ Available now',
         availableNow: 'Available now',
         soonBadge: 'Almost free',
         busyBadge: 'Not available yet',
-        availableOn: 'Available on {{date}}',
-        fullNow: 'Fully booked',
+        availableOn: 'Ready on {{date}}',
+        fullNow: 'Not available yet',
         rentNow: 'Rent now',
         reserve: 'Reserve in Advance',
         lineToastOpen: 'LINE opened',
@@ -628,7 +628,7 @@
         packageStatus: 'Status',
         packageExample: 'Example: if a customer ID has 2 slots and 1 slot is already booked, set “Total slots = 2”, “Booked slots = 1”, and keep the status as “Available”.',
         removePackage: 'Remove this package',
-        statusPlaceholder: 'e.g. Available or Fully booked\nAvailable on 30/04/2026',
+        statusPlaceholder: 'e.g. Available or Not available yet\nReady on 30/04/2026',
         deleteConfirm: 'Delete ID #{{id}}?',
         resetConfirm: 'Reset back to the original Excel data?',
         lineMessageRentIntro: '🎮 Hello, I would like to rent a PS5 game ID.',
@@ -750,7 +750,30 @@
       return raw || tr('typeGame');
     }
 
+    function normalizeExpiredOfferStatus(offer) {
+      const o = { ...(offer || {}) };
+      const statusText = String(o.statusText || '').trim();
+      const m = statusText.match(/(\d{2}\/\d{2}\/\d{4})/);
+      if (!m) return o;
+
+      const ready = parseDdMmYyyy(m[1]);
+      if (!ready) return o;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      ready.setHours(0, 0, 0, 0);
+
+      if (ready <= today) {
+        o.statusText = 'ว่าง';
+        o.available = true;
+        o.availableDate = null;
+        o.bookedCount = 0;
+      }
+      return o;
+    }
+
     function hydrateOffer(offer) {
+      offer = normalizeExpiredOfferStatus(offer);
       const typeLabel = offer?.typeLabel || tr('typeGame');
       const defaultCapacity = /ลูกค้า|customer/i.test(typeLabel) ? 2 : 1;
       const status = parseStatusText(offer?.statusText);
@@ -796,7 +819,7 @@
         ...item,
         notReady: Boolean(item?.notReady),
         readyDate: item?.readyDate || '',
-        offers: (item?.offers || []).map(hydrateOffer)
+        offers: (item?.offers || []).map(offer => hydrateOffer(normalizeExpiredOfferStatus(offer)))
       })));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
@@ -987,11 +1010,26 @@
     function getOfferState(offer) {
       const hydrated = hydrateOffer(offer);
       const status = parseStatusText(hydrated.statusText);
-      const fullByCount = status.available && hydrated.bookedCount >= hydrated.capacity;
-      const available = status.available && !fullByCount;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      let dateReached = false;
+      if (status.availableDate) {
+        const ready = parseDdMmYyyy(status.availableDate);
+        if (ready) {
+          ready.setHours(0, 0, 0, 0);
+          dateReached = ready <= today;
+        }
+      }
+
+      const fullByCount = !dateReached && status.available && hydrated.bookedCount >= hydrated.capacity;
+      const available = dateReached || (status.available && !fullByCount);
+
       let label = tr('busyBadge');
       let badgeClass = 'status-busy';
       let text = status.availableDate ? tr('availableOn', { date: status.availableDate }) : tr('fullNow');
+
       if (available) {
         label = tr('availableNow');
         badgeClass = 'status-ok';
@@ -1005,6 +1043,7 @@
         badgeClass = 'status-soon';
         text = tr('availableNow');
       }
+
       return { ...hydrated, available, statusLabel: label, badgeClass, whenText: text, rawStatus: status.raw };
     }
 
