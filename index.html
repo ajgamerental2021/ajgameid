@@ -66,8 +66,36 @@
     .hero-grid { display:grid; grid-template-columns: 1fr; gap:16px; }
     .hero-card, .stats-card, .game-card, .admin-panel, .admin-login-card { background: var(--panel); border:1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
     .hero-card { padding:22px; }
+    .hero-top { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+    .hero-copy { min-width:240px; flex:1 1 360px; }
     .hero-card h2 { margin:0 0 10px; font-size: clamp(1.45rem, 3vw, 2.25rem); line-height:1.08; letter-spacing:-.02em; }
     .hero-card p { margin:0; color:#4b5563; max-width:58ch; }
+    .help-actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end; }
+    .help-btn {
+      border:1px solid #dc2626;
+      background:#dc2626;
+      color:#fff;
+      border-radius:999px;
+      padding:11px 14px;
+      cursor:pointer;
+      font-weight:900;
+      font-size:.9rem;
+      line-height:1.15;
+      transition:.18s ease;
+      box-shadow:0 8px 18px rgba(220,38,38,.20);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:7px;
+    }
+    .help-btn::before { content:'?'; width:18px; height:18px; border-radius:999px; display:inline-grid; place-items:center; background:#fff; color:#dc2626; font-size:.78rem; font-weight:900; flex:0 0 auto; }
+    .help-btn[data-help="rentGuide"] { border-color:#16a34a; background:#16a34a; box-shadow:0 8px 18px rgba(22,163,74,.20); }
+    .help-btn[data-help="rentGuide"]::before { content:'▶'; font-size:.68rem; }
+    .help-btn[data-help="rentGuide"]::before { color:#16a34a; }
+    .help-btn:hover { background:#b91c1c; border-color:#b91c1c; transform:translateY(-1px); box-shadow:0 10px 22px rgba(220,38,38,.24); }
+    .help-btn[data-help="rentGuide"]:hover { background:#15803d; border-color:#15803d; box-shadow:0 10px 22px rgba(22,163,74,.24); }
+    .card-help-actions { display:grid; grid-template-columns:1fr; gap:9px; margin-top:2px; padding-top:12px; border-top:1px solid var(--line); }
+    .card-help-actions .help-btn { width:100%; border-radius:14px; padding:11px 12px; text-align:center; min-height:44px; }
     .search-wrap { margin-top:16px; display:flex; flex-wrap:wrap; gap:10px; padding:10px; border-radius:18px; background: var(--panel-soft); border:1px solid var(--line); }
     .search-input { flex:1 1 320px; min-width:220px; border:1px solid var(--line); background:#fff; border-radius:14px; padding:12px 14px; outline:none; font-size:.96rem; }
     .search-input:focus { border-color:#bbb; box-shadow: 0 0 0 4px rgba(17,17,17,.05); }
@@ -169,6 +197,34 @@
     .copy-modal-card h3 { margin:0 0 10px; font-size:1.22rem; line-height:1.25; }
     .copy-modal-card p { margin:0 0 18px; color:#4b5563; line-height:1.55; }
     .copy-modal-card .primary-btn { min-width:120px; }
+    .info-modal { position:fixed; inset:0; z-index:96; display:none; place-items:center; padding:18px; background:rgba(17,24,39,.34); backdrop-filter:blur(8px); }
+    .info-modal.open { display:grid; }
+    .info-modal-card { width:min(860px, 100%); max-height:min(86vh, 920px); overflow:hidden; background:#fff; border:1px solid var(--line); border-radius:20px; box-shadow:0 24px 70px rgba(17,24,39,.22); display:flex; flex-direction:column; }
+    .info-modal-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 18px; border-bottom:1px solid var(--line); }
+    .info-modal-head h3 { margin:0; font-size:1.12rem; line-height:1.25; }
+    .info-head-actions { display:flex; align-items:center; gap:8px; flex:0 0 auto; }
+    .info-lang-switch { display:flex; background:#fafaf8; border:1px solid var(--line); border-radius:999px; padding:3px; gap:3px; }
+    .info-lang-btn { border:0; border-radius:999px; background:transparent; padding:7px 10px; cursor:pointer; font-weight:900; font-size:.82rem; color:#4b5563; }
+    .info-lang-btn.active { background:#111; color:#fff; }
+    .info-close-btn { width:34px; height:34px; border-radius:999px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:1.1rem; font-weight:900; line-height:1; }
+    .info-modal-body { overflow:auto; padding:18px; color:#1f2937; line-height:1.55; }
+    .info-lead { display:grid; gap:10px; margin-bottom:16px; }
+    .info-alert { border:1px solid #fecaca; background:#fff5f5; color:#b91c1c; border-radius:14px; padding:12px 13px; font-weight:900; }
+    .info-ok { border:1px solid #86efac; background:#f0fff4; color:#166534; border-radius:14px; padding:12px 13px; font-weight:900; }
+    .info-section { border-top:1px solid var(--line); padding-top:16px; margin-top:16px; }
+    .info-section h4 { margin:0 0 8px; font-size:1.02rem; }
+    .info-section p { margin:0 0 10px; }
+    .info-section ul { margin:8px 0 0; padding-left:22px; }
+    .info-section li { margin:5px 0; }
+    .guide-list { display:grid; gap:18px; }
+    .guide-step { border:1px solid var(--line); border-radius:16px; padding:12px; background:#fff; }
+    .guide-step img { width:100%; max-height:430px; object-fit:contain; display:block; border-radius:12px; background:#f3f4f6; border:1px solid var(--line); }
+    .guide-step p { margin:10px 0 0; font-weight:800; }
+    .video-frame { width:100%; aspect-ratio:16 / 9; border-radius:14px; overflow:hidden; border:1px solid var(--line); background:#202020; }
+    .video-frame video { width:100%; height:100%; display:block; object-fit:contain; background:#111; }
+    .video-direct-wrap { margin-top:10px; display:flex; justify-content:center; }
+    .video-direct-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid #e5e7eb; border-radius:999px; background:#fff; color:#4b5563; padding:9px 12px; font-weight:800; font-size:.88rem; text-decoration:none; box-shadow:none; }
+    .video-direct-btn:hover { transform:translateY(-1px); }
     .hidden { display:none !important; }
     @media (max-width: 980px) {
       .hero-grid { grid-template-columns: 1fr; }
@@ -180,6 +236,8 @@
       .topbar-inner { align-items:flex-start; }
       .top-actions { width:100%; justify-content:flex-start; }
       .hero-card { padding:18px; }
+      .hero-top { display:grid; }
+      .help-actions { justify-content:flex-start; }
       .stats-grid { grid-template-columns: 1fr 1fr; }
       .results-grid { grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
       .cover-area { min-height: 206px; padding:12px 12px 8px; }
@@ -188,6 +246,8 @@
       .offer { padding:10px; }
       .form-grid, .offer-editor-grid, .admin-inline-grid { grid-template-columns: 1fr; }
       .offer-bottom .primary-btn { width:100%; }
+      .info-modal { padding:10px; }
+      .info-modal-head { align-items:flex-start; }
     }
     @media (max-width: 520px) {
       .results-grid { grid-template-columns: 1fr 1fr; }
@@ -225,8 +285,16 @@
     <section class="hero">
       <div class="hero-grid">
         <div class="hero-card">
-          <h2 id="heroTitleText">รายการไอดีเกม PS5</h2>
-          <p id="heroSubtitleText">ค้นหาชื่อเกม เช็กคิวว่าง และกดเช่า/จอง ได้ทันที</p>
+          <div class="hero-top">
+            <div class="hero-copy">
+              <h2 id="heroTitleText">รายการไอดีเกม PS5</h2>
+              <p id="heroSubtitleText">ค้นหาชื่อเกม เช็กคิวว่าง และกดเช่า/จอง ได้ทันที</p>
+            </div>
+            <div class="help-actions" aria-label="ข้อมูลช่วยเหลือ">
+              <button class="help-btn" id="idTypesHelpBtn" data-help="idTypes" type="button">ไอดีร้านกับไอดีลูกค้า ต่างกันยังไง ?</button>
+              <button class="help-btn" id="rentGuideHelpBtn" data-help="rentGuide" type="button">วิธีการแจ้งเช่าไอดี</button>
+            </div>
+          </div>
           <div class="search-wrap">
             <input id="searchInput" class="search-input" type="text" placeholder="พิมพ์ชื่อเกม เช่น Saros, Spider-Man 2, Ghost of Yotei..." />
             <div class="filter-group">
@@ -354,6 +422,21 @@
       <button class="primary-btn" id="copyModalOkBtn" type="button">ตกลง</button>
     </div>
   </div>
+  <div id="infoModal" class="info-modal" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
+    <div class="info-modal-card">
+      <div class="info-modal-head">
+        <h3 id="infoModalTitle">ข้อมูลเพิ่มเติม</h3>
+        <div class="info-head-actions">
+          <div class="info-lang-switch" aria-label="ภาษาใน popup">
+            <button class="info-lang-btn active" id="infoModalThBtn" type="button">ไทย</button>
+            <button class="info-lang-btn" id="infoModalEnBtn" type="button">EN</button>
+          </div>
+          <button class="info-close-btn" id="infoModalCloseBtn" type="button" aria-label="ปิด">×</button>
+        </div>
+      </div>
+      <div id="infoModalBody" class="info-modal-body"></div>
+    </div>
+  </div>
 
   <script>
     const SOURCE_DATA = {"config":{"siteTitle":"รายการเช่าไอดีเกม PS5","siteSubtitle":"ค้นหาชื่อเกม เช็กคิวว่าง และกดเช่า/จอง ได้ทันที","lineUrl":"https://lin.ee/P2mp0RK","brandName":"AJ เช่าเครื่องเกม","storageKey":"aj_ps5_game_id_rental_v1","adminHint":"การแก้ไขจากหน้า Admin จะบันทึกในเครื่องนี้ทันที และเมื่อเครื่องนี้มี GitHub token ระบบจะพยายามอัปเดตขึ้น Gist ให้อัตโนมัติ"},"ids":[{"idNo":1,"title":"Saros","platform":"PS5","images":["assets/image1.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Saros"],"sourceRows":[4]},{"idNo":2,"title":"Pragmata","platform":"PS5","images":["assets/image2.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Pragmata"],"sourceRows":[6]},{"idNo":3,"title":"Crimson Desert","platform":"PS5","images":["assets/image3.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"คิวเต็ม\nจะว่าง 30/04/2026","available":false,"availableDate":"30/04/2026","bookedCount":1},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Crimson Desert"],"sourceRows":[8]},{"idNo":4,"title":"Crimson Desert","platform":"PS5","images":["assets/image3.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Crimson Desert"],"sourceRows":[10]},{"idNo":5,"title":"Resident Evil Requiem","platform":"PS5","images":["assets/image4.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Resident Evil Requiem"],"sourceRows":[12]},{"idNo":6,"title":"REANIMAL","platform":"PS5","images":["assets/image5.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":180,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["REANIMAL"],"sourceRows":[14]},{"idNo":7,"title":"Nioh 3","platform":"PS5","images":["assets/image6.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Nioh 3"],"sourceRows":[16]},{"idNo":8,"title":"ARC Raiders / Hollow Knight: Silksong / Shinobi: Art of Vengeance / Baby Steps","platform":"PS5","images":["assets/image7.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 8 ☝️","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":250,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["ARC Raiders","Hollow Knight Silksong","Silksong","Shinobi Art of Vengeance","Baby Steps","ARC Raiders / Hollow Knight: Silksong / Shinobi: Art of Vengeance / Baby Steps"],"sourceRows":[18]},{"idNo":9,"title":"Call of Duty / Black Ops 7","platform":"PS5","images":["assets/image8.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Call of Duty","Black Ops 7","Call of Duty / Black Ops 7"],"sourceRows":[21]},{"idNo":10,"title":"Battlefield 6","platform":"PS5","images":["assets/image9.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Battlefield 6"],"sourceRows":[23]},{"idNo":11,"title":"Little Nightmares 3","platform":"PS5","images":["assets/image10.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":300,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Little Nightmares 3"],"sourceRows":[25]},{"idNo":12,"title":"PSN Plus Extra","platform":"PS5 / PS4","images":["assets/image11.webp"],"note":"","offers":[{"days":15,"typeLabel":"ไอดีร้าน","capacity":1,"price":180,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":300,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["PSN Plus Extra"],"sourceRows":[27]},{"idNo":13,"title":"Ghos of Yotei / (ID no. 1)","platform":"PS5","images":["assets/image12.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Ghos of Yotei","(ID no. 1)","Ghos of Yotei / (ID no. 1)"],"sourceRows":[29]},{"idNo":14,"title":"Ghos of Yotei / (ID no. 2)","platform":"PS5","images":["assets/image12.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Ghos of Yotei","(ID no. 2)","Ghos of Yotei / (ID no. 2)"],"sourceRows":[31]},{"idNo":15,"title":"Silent Hill f","platform":"PS5","images":["assets/image13.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Silent Hill f"],"sourceRows":[33]},{"idNo":16,"title":"NBA2K26","platform":"PS5","images":["assets/image14.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["NBA2K26"],"sourceRows":[35]},{"idNo":17,"title":"Dying Light / The Beast","platform":"PS5","images":["assets/image15.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Dying Light","The Beast","Dying Light / The Beast"],"sourceRows":[37]},{"idNo":18,"title":"EA Sports FC 26","platform":"PS5","images":["assets/image16.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["EA Sports FC 26"],"sourceRows":[39]},{"idNo":19,"title":"Doom / The Dark Ages","platform":"PS5","images":["assets/image17.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Doom","The Dark Ages","Doom / The Dark Ages"],"sourceRows":[41]},{"idNo":20,"title":"Borderlands 4","platform":"PS5","images":["assets/image18.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Borderlands 4"],"sourceRows":[43]},{"idNo":21,"title":"Lost Soul Aside","platform":"PS5","images":["assets/image19.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Lost Soul Aside"],"sourceRows":[45]},{"idNo":22,"title":"Metal Gear Solid / Delta Snake Eater","platform":"PS5","images":["assets/image20.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Metal Gear Solid","Delta Snake Eater","Metal Gear Solid / Delta Snake Eater"],"sourceRows":[47]},{"idNo":23,"title":"Mafia The Old Country","platform":"PS5","images":["assets/image21.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Mafia The Old Country"],"sourceRows":[49]},{"idNo":24,"title":"Wuchang: / Fallen Feathers","platform":"PS5","images":["assets/image22.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Wuchang:","Fallen Feathers","Wuchang: / Fallen Feathers"],"sourceRows":[51]},{"idNo":25,"title":"Ready or Not","platform":"PS5","images":["assets/image23.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Ready or Not"],"sourceRows":[53]},{"idNo":26,"title":"Elden Ring Nightreign / Death Stranding 2 / The First Berserker: Khazan","platform":"PS5","images":["assets/image24.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 26 ☝️","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Elden Ring Nightreign","Death Stranding 2","The First Berserker Khazan","Khazan","Elden Ring Nightreign / Death Stranding 2 / The First Berserker: Khazan"],"sourceRows":[55]},{"idNo":27,"title":"Death Stranding 2: / On The Beach","platform":"PS5","images":["assets/image25.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Death Stranding 2:","On The Beach","Death Stranding 2: / On The Beach"],"sourceRows":[59]},{"idNo":28,"title":"Rematch","platform":"PS5","images":["assets/image26.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":100,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Rematch"],"sourceRows":[61]},{"idNo":29,"title":"Elden Ring / Nightreign","platform":"PS5","images":["assets/image27.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Elden Ring","Nightreign","Elden Ring / Nightreign"],"sourceRows":[63]},{"idNo":30,"title":"Fantasy Life I","platform":"PS5","images":["assets/image28.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Fantasy Life I"],"sourceRows":[65]},{"idNo":31,"title":"Clair Obscur: / Expedition 33","platform":"PS5","images":["assets/image29.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Clair Obscur:","Expedition 33","Clair Obscur: / Expedition 33"],"sourceRows":[67]},{"idNo":32,"title":"Assassin's Creed Shadows","platform":"PS5","images":["assets/image30.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Assassin's Creed Shadows"],"sourceRows":[69]},{"idNo":33,"title":"The First Berserker / Khazan","platform":"PS5","images":["assets/image31.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["The First Berserker","Khazan","The First Berserker / Khazan"],"sourceRows":[71]},{"idNo":34,"title":"Monster Hunter Wilds","platform":"PS5","images":["assets/image32.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Monster Hunter Wilds"],"sourceRows":[73]},{"idNo":35,"title":"Split Fiction","platform":"PS5","images":["assets/image33.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Split Fiction"],"sourceRows":[75]},{"idNo":36,"title":"Kingdom Come / Deliverance 2","platform":"PS5","images":["assets/image34.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Kingdom Come","Deliverance 2","Kingdom Come / Deliverance 2"],"sourceRows":[77]},{"idNo":37,"title":"Stellar Blade / + / Devil May Cry 5 / (มี 2 เกม)","platform":"PS5","images":["assets/image35.webp","assets/image36.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Stellar Blade","+","Devil May Cry 5","(มี 2 เกม)","Stellar Blade / + / Devil May Cry 5 / (มี 2 เกม)"],"sourceRows":[79]},{"idNo":38,"title":"Black Myth Wukong","platform":"PS5","images":["assets/image37.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Black Myth Wukong"],"sourceRows":[81]},{"idNo":39,"title":"Dynasty Warrior Origins","platform":"PS5","images":["assets/image38.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Dynasty Warrior Origins"],"sourceRows":[83]},{"idNo":40,"title":"Call of Duty / Black Ops 6","platform":"PS5","images":["assets/image39.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Call of Duty","Black Ops 6","Call of Duty / Black Ops 6"],"sourceRows":[85]},{"idNo":41,"title":"1.Path of Exile 2 / 2.Party Animal / (มี 2 เกม)","platform":"PS5","images":["assets/image40.webp","assets/image41.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":100,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["1.Path of Exile 2","2.Party Animal","(มี 2 เกม)","1.Path of Exile 2 / 2.Party Animal / (มี 2 เกม)"],"sourceRows":[87]},{"idNo":42,"title":"รวมหลายเกม: Astro Bot / UFC 5 / Spider-Man 2 / Hogwarts Legacy / CoD MW3 / GTA V / EA FC 24 / NBA 2K24","platform":"PS5","images":["assets/image42.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 42 ☝️","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Astro Bot","UFC 5","Spider-Man 2","Marvel Spider-Man 2","Hogwarts Legacy","Call of Duty Modern Warfare III","Modern Warfare III","Battlefield V","Spider-Man Miles Morales","Star Wars Jedi Survivor","GTA V","Grand Theft Auto V","EA Sports FC 24","FC24","NBA 2K24","MotoGP 23","Madden 24","รวมหลายเกม: Astro Bot / UFC 5 / Spider-Man 2 / Hogwarts Legacy / CoD MW3 / GTA V / EA FC 24 / NBA 2K24"],"sourceRows":[89]},{"idNo":43,"title":"NBA2K25","platform":"PS5","images":["assets/image43.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":100,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["NBA2K25"],"sourceRows":[94]},{"idNo":44,"title":"Metaphor : Refantazio","platform":"PS5","images":["assets/image44.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Metaphor : Refantazio"],"sourceRows":[96]},{"idNo":45,"title":"Dragonball Sparking Zero","platform":"PS5","images":["assets/image45.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Dragonball Sparking Zero"],"sourceRows":[98]},{"idNo":46,"title":"Persona 3 Reload","platform":"PS5","images":["assets/image46.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":100,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Persona 3 Reload"],"sourceRows":[100]},{"idNo":47,"title":"รวมหลายเกม: Naruto Storm 4 / Overcooked! 2 / Red Dead Redemption 2 / The Sims 4 / Resident Evil 4 / Ghost of Tsushima","platform":"PS5","images":["assets/image47.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 47 ☝️","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":300,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Naruto Shippuden Ultimate Ninja Storm 4","Overcooked 2","Red Dead Redemption 2","The Sims 4","Resident Evil 4","Doraemon Story of Seasons","Ghost of Tsushima","รวมหลายเกม: Naruto Storm 4 / Overcooked! 2 / Red Dead Redemption 2 / The Sims 4 / Resident Evil 4 / Ghost of Tsushima"],"sourceRows":[102]},{"idNo":48,"title":"รวมหลายเกม: Hogwarts Legacy / Path of Exile 2 / Spider-Man 2 / DBZ Kakarot / Granblue Fantasy: Relink / Like a Dragon: Infinite Wealth","platform":"PS5","images":["assets/image48.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 48 ☝️","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":350,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Hogwarts Legacy","Path of Exile 2","Spider-Man 2","Dragon Ball Z Kakarot","DragonBall Z Kakarot","Granblue Fantasy Relink","Like a Dragon Infinite Wealth","รวมหลายเกม: Hogwarts Legacy / Path of Exile 2 / Spider-Man 2 / DBZ Kakarot / Granblue Fantasy: Relink / Like a Dragon: Infinite Wealth"],"sourceRows":[106]},{"idNo":49,"title":"รวมหลายเกมจากภาพคอลลาจ","platform":"PS5","images":["assets/image49.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 49 ☝️","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Rise of the Ronin","Ratchet & Clank","Persona 5 Tactica","MediEvil","Horizon Forbidden West","Ghost of Tsushima","Elden Ring","Demon's Souls","Chrono Cross","Bloodborne","The Last of Us Part II","Visions of Mana","รวมหลายเกมจากภาพคอลลาจ"],"sourceRows":[110]}]};
@@ -414,6 +497,9 @@
         copyModalTitle: 'คัดลอกข้อมูลเรียบร้อย',
         copyModalMessage: 'นำข้อความไปส่งต่อในแชทที่คุยกับทางร้านได้เลย',
         copyModalOk: 'ตกลง',
+        idTypesHelp: 'ไอดีร้านกับไอดีลูกค้า ต่างกันยังไง ?',
+        rentGuideHelp: 'วิธีการแจ้งเช่าไอดี',
+        infoModalFallbackTitle: 'ข้อมูลเพิ่มเติม',
         copyLineToast: 'คัดลอกลิงก์ LINE แล้ว',
         listCount: '{{count}} แพ็กเกจ',
         adminManage: 'จัดการรายการ',
@@ -574,6 +660,9 @@
         copyModalTitle: 'Information copied',
         copyModalMessage: 'Send the copied message in your current chat with the shop.',
         copyModalOk: 'OK',
+        idTypesHelp: 'Store ID vs Customer ID',
+        rentGuideHelp: 'How to request an ID rental',
+        infoModalFallbackTitle: 'More information',
         copyLineToast: 'LINE link copied',
         listCount: '{{count}} packages',
         adminManage: 'Manage items',
@@ -675,6 +764,8 @@
     let adminDraft = null;
     let isCreatingNew = false;
     let currentLang = localStorage.getItem('aj_ps5_site_lang') || 'th';
+    let infoModalType = null;
+    let infoModalLang = currentLang;
 
     const el = {
       searchInput: document.getElementById('searchInput'),
@@ -689,6 +780,14 @@
       copyModalTitle: document.getElementById('copyModalTitle'),
       copyModalMessage: document.getElementById('copyModalMessage'),
       copyModalOkBtn: document.getElementById('copyModalOkBtn'),
+      infoModal: document.getElementById('infoModal'),
+      infoModalTitle: document.getElementById('infoModalTitle'),
+      infoModalBody: document.getElementById('infoModalBody'),
+      infoModalCloseBtn: document.getElementById('infoModalCloseBtn'),
+      infoModalThBtn: document.getElementById('infoModalThBtn'),
+      infoModalEnBtn: document.getElementById('infoModalEnBtn'),
+      idTypesHelpBtn: document.getElementById('idTypesHelpBtn'),
+      rentGuideHelpBtn: document.getElementById('rentGuideHelpBtn'),
       adminShell: document.getElementById('adminShell'),
       adminPanel: document.getElementById('adminPanel'),
       adminLoginWrap: document.getElementById('adminLoginWrap'),
@@ -1239,6 +1338,210 @@
       el.copyModal?.classList.remove('open');
     }
 
+    function getIdTypesContent(lang) {
+      if (lang === 'en') {
+        return {
+          title: 'Store ID vs Customer ID',
+          body: `
+            <div class="info-lead">
+              <div class="info-alert">⚠️ Store ID = Play through the shop account. Saves do not go to your own account.</div>
+              <div class="info-ok">✅ Customer ID = Play through your own account. Saves and trophies stay with you.</div>
+            </div>
+            <p><strong>Read more details below 👇</strong></p>
+            <div class="info-section">
+              <h4>🎮 Store ID — play through the shop account</h4>
+              <p>Customers play the game directly through the shop's <strong>PSN Account</strong>.</p>
+              <p><strong>📌 What you get</strong></p>
+              <ul>
+                <li>Play the listed game throughout the rental period.</li>
+                <li>Play story mode and other game modes normally.</li>
+                <li>Download game updates.</li>
+              </ul>
+              <p><strong>⚠️ Limitations</strong></p>
+              <ul>
+                <li>Game saves and trophies stay on the shop ID, not your personal ID.</li>
+                <li>After the rental ends, you cannot continue playing or use the same save.</li>
+                <li>An internet connection is required while playing because usage rights are checked.</li>
+              </ul>
+              <p><strong>✨ Best for:</strong> customers who want to finish a game in a short time and do not need saves or trophies on their own account.</p>
+            </div>
+            <div class="info-section">
+              <h4>👤 Customer ID — play through your personal account</h4>
+              <p>The game license is enabled on your PS5, then you can play from your own <strong>PSN Account</strong> using PS5 Console Sharing and Offline Play, which lets other accounts on that console play games purchased and downloaded by the owner account.</p>
+              <p><strong>📌 What you get</strong></p>
+              <ul>
+                <li>Play with your own PSN name and profile.</li>
+                <li>Saves and trophies stay in your account.</li>
+                <li>Use your own friends list, stats, and settings.</li>
+                <li>After the rental ends, saves and trophies remain. If you buy or rent the game again, you can continue from your save.</li>
+              </ul>
+              <p><strong>⚠️ Limitations</strong></p>
+              <ul>
+                <li>You receive temporary play access only. You do not own the game.</li>
+                <li>After the rental ends, the game will be locked or cannot be opened.</li>
+                <li>Access works only on the PS5 where the shop installs it. It cannot be moved to another console.</li>
+                <li>Console Sharing can be active on one PS5 per account at a time. When the rental ends, the shop will contact you / ask you to remove the ID yourself.</li>
+              </ul>
+              <p><strong>✨ Best for:</strong> customers who want to play on their own ID, keep saves and trophies, and continue playing longer term.</p>
+            </div>
+          `
+        };
+      }
+
+      return {
+        title: 'ไอดีร้านกับไอดีลูกค้า ต่างกันยังไง ?',
+        body: `
+          <div class="info-lead">
+            <div class="info-alert">⚠️ ไอดีร้าน = เล่นผ่านบัญชีร้าน เซฟไม่เข้าบัญชีตัวเอง</div>
+            <div class="info-ok">✅ ไอดีลูกค้า = เล่นผ่านบัญชีตัวเอง เซฟและถ้วยรางวัลอยู่กับลูกค้า</div>
+          </div>
+          <p><strong>สามารถอ่านรายละเอียดเพิ่มเติมทางด้านล่าง 👇</strong></p>
+          <div class="info-section">
+            <h4>🎮 ไอดีร้าน — เล่นผ่านบัญชีของร้าน</h4>
+            <p>ลูกค้าจะเข้าเล่นเกมผ่าน <strong>PSN Account ของทางร้านโดยตรง</strong></p>
+            <p><strong>📌 ได้รับสิทธิ์</strong></p>
+            <ul>
+              <li>เล่นเกมที่ระบุไว้ในไอดีนั้นได้ตลอดระยะเวลาเช่า</li>
+              <li>เล่นเนื้อเรื่องและโหมดต่าง ๆ ของตัวเกมได้ตามปกติ</li>
+              <li>ดาวน์โหลดอัปเดตเกมได้</li>
+            </ul>
+            <p><strong>⚠️ ข้อจำกัด</strong></p>
+            <ul>
+              <li>เซฟเกมและถ้วยรางวัลจะอยู่ในไอดีของร้าน ไม่เข้าไอดีส่วนตัวของลูกค้า</li>
+              <li>เมื่อหมดระยะเวลาเช่า จะไม่สามารถเข้าเล่นหรือใช้เซฟเดิมต่อได้</li>
+              <li>ต้องเชื่อมต่ออินเทอร์เน็ตตลอดเวลาในการเล่น เพราะระบบมีการตรวจสอบสิทธิ์การใช้งานเกม</li>
+            </ul>
+            <p><strong>✨ เหมาะกับ:</strong> ลูกค้าที่ต้องการเล่นให้จบภายในระยะสั้น และไม่เน้นเก็บเซฟหรือถ้วยรางวัลไว้ในไอดีตัวเอง</p>
+          </div>
+          <div class="info-section">
+            <h4>👤 ไอดีลูกค้า — เล่นผ่านบัญชีส่วนตัวของลูกค้า</h4>
+            <p>เป็นการเปิดสิทธิ์เกมบนเครื่อง PS5 จากนั้นลูกค้าสามารถกลับมาเล่นผ่าน <strong>PSN Account ของตัวเอง</strong> ได้ โดยอาศัยระบบ Console Sharing and Offline Play ของ PS5 ซึ่งอนุญาตให้บัญชีอื่นบนเครื่องที่เปิดสิทธิ์ เล่นเกมที่บัญชีเจ้าของซื้อและดาวน์โหลดไว้ได้</p>
+            <p><strong>📌 ได้รับสิทธิ์</strong></p>
+            <ul>
+              <li>เล่นผ่านชื่อและโปรไฟล์ PSN ของตัวเอง</li>
+              <li>เซฟเกมและถ้วยรางวัลอยู่ในบัญชีของลูกค้า</li>
+              <li>ใช้รายชื่อเพื่อน สถิติ และการตั้งค่าของตัวเองได้</li>
+              <li>เมื่อหมดเวลาเช่า เซฟและถ้วยรางวัลยังอยู่ หากซื้อเกมหรือเช่าใหม่ก็สามารถเล่นต่อจากเดิมได้</li>
+            </ul>
+            <p><strong>⚠️ ข้อจำกัด</strong></p>
+            <ul>
+              <li>ลูกค้าได้รับเพียงสิทธิ์เล่นชั่วคราว ไม่ได้เป็นเจ้าของเกม</li>
+              <li>เมื่อหมดระยะเวลาเช่า เกมจะถูกล็อกหรือไม่สามารถเปิดเล่นได้</li>
+              <li>ใช้สิทธิ์ได้เฉพาะเครื่อง PS5 ที่ร้านติดตั้งให้ ไม่สามารถนำไปเปิดในเครื่องอื่น</li>
+              <li>Console Sharing เปิดใช้งานได้ครั้งละหนึ่งเครื่อง PS5 ต่อหนึ่งบัญชี ดังนั้นเมื่อหมดเวลาเช่า ทางร้านจะทักหา/ให้ลูกค้าลบไอดีด้วยตัวเอง</li>
+            </ul>
+            <p><strong>✨ เหมาะกับ:</strong> ลูกค้าที่ต้องการเล่นผ่านไอดีตัวเอง เก็บเซฟ เก็บถ้วยรางวัล และต้องการเล่นต่อเนื่องระยะยาว</p>
+          </div>
+        `
+      };
+    }
+
+    function getRentGuideContent(lang) {
+      const steps = lang === 'en'
+        ? [
+            ['assets/help/rent-step-1.png', 'Choose the ID type you want, then press “Rent now” or “Reserve in Advance”.'],
+            ['assets/help/rent-step-2.png', 'The system has copied the booking message. Press “OK”.'],
+            ['assets/help/rent-step-3.png', 'Paste the copied message into the chat you already use with the shop, either LINE or Facebook.'],
+            ['assets/help/rent-step-4.png', 'It will appear as a message like this. Press Enter or send the message to the shop.'],
+            ['assets/help/rent-step-5.png', 'After sending the message, wait for admin to contact you back to confirm the rental and payment details.']
+          ]
+        : [
+            ['assets/help/rent-step-1.png', 'เลือกประเภทไอดีที่ต้องการ และกด เช่าเลย หรือ จองล่วงหน้า'],
+            ['assets/help/rent-step-2.png', 'ระบบคัดลอกข้อความการจองให้แล้ว ให้กด "ตกลง"'],
+            ['assets/help/rent-step-3.png', 'นำข้อความที่ Copy มาวางที่แชทที่คุยกับทางร้านได้ทั้ง Line และ Facebook'],
+            ['assets/help/rent-step-4.png', 'จะได้เป็นข้อความแบบนี้และกด Enter หรือ ส่งข้อความนี้ให้ร้านได้เลย'],
+            ['assets/help/rent-step-5.png', 'เมื่อส่งข้อความแล้ว รอแอดมินติดต่อกลับเพื่อยืนยันการเช่าและแจ้งรายละเอียดการชำระเงิน']
+          ];
+      const videoCaption = lang === 'en'
+        ? 'After payment and sending the slip, please send the QR Code shown in the video above to the chat so the shop can scan the ID into your PS5.'
+        : 'เมื่อชำระเงินและแจ้งสลิปแล้ว รบกวนส่ง QR Code ตามคลิปด้านบนมาให้ทางแชทเพื่อทำการสแกนไอดีเข้าเครื่อง PS5 ให้';
+      const videoDirect = lang === 'en'
+        ? 'If the video above does not play, open this link'
+        : 'ถ้ากดเล่นคลิปด้านบนไม่ได้ ให้กดเปิดลิ้งค์นี้';
+
+      return {
+        title: lang === 'en' ? 'How to request an ID rental' : 'วิธีการแจ้งเช่าไอดี',
+        body: `
+          <div class="guide-list">
+            ${steps.map(([src, caption], idx) => `
+              <div class="guide-step">
+                <img src="${src}" alt="${escapeHtml(lang === 'en' ? `Rental guide step ${idx + 1}` : `วิธีแจ้งเช่าไอดี ขั้นตอนที่ ${idx + 1}`)}" />
+                <p>${idx + 1}. ${escapeHtml(caption)}</p>
+              </div>
+            `).join('')}
+            <div class="guide-step">
+              <div class="video-frame">
+                <video controls playsinline preload="metadata" poster="assets/help/aj-video-poster.png">
+                  <source src="assets/help/aj-video.mp4" type="video/mp4" />
+                </video>
+              </div>
+              <div class="video-direct-wrap">
+                <a class="video-direct-btn" href="assets/help/aj-video.mp4" target="_blank" rel="noopener noreferrer">${escapeHtml(videoDirect)}</a>
+              </div>
+              <p>6. ${escapeHtml(videoCaption)}</p>
+            </div>
+          </div>
+        `
+      };
+    }
+
+    function getInfoContent(type, lang) {
+      return type === 'rentGuide' ? getRentGuideContent(lang) : getIdTypesContent(lang);
+    }
+
+    function renderInfoModal() {
+      if (!el.infoModal || !infoModalType) return;
+      const content = getInfoContent(infoModalType, infoModalLang);
+      el.infoModalTitle.textContent = content.title || tr('infoModalFallbackTitle');
+      el.infoModalBody.innerHTML = content.body || '';
+      el.infoModalThBtn.classList.toggle('active', infoModalLang === 'th');
+      el.infoModalEnBtn.classList.toggle('active', infoModalLang === 'en');
+    }
+
+    function getInfoHash(type) {
+      return type === 'rentGuide' ? '#rent-guide' : '#id-types';
+    }
+
+    function getInfoTypeFromUrl() {
+      const hash = String(window.location.hash || '').replace(/^#/, '').toLowerCase();
+      const popup = new URLSearchParams(window.location.search).get('popup')?.toLowerCase() || '';
+      const key = hash || popup;
+      if (['rent-guide', 'rentguide', 'guide', 'how-to-rent'].includes(key)) return 'rentGuide';
+      if (['id-types', 'idtypes', 'id-type', 'types'].includes(key)) return 'idTypes';
+      return null;
+    }
+
+    function openInfoModal(type, updateUrl = true) {
+      infoModalType = type;
+      infoModalLang = currentLang === 'en' ? 'en' : 'th';
+      renderInfoModal();
+      el.infoModal?.classList.add('open');
+      if (updateUrl) {
+        const nextHash = getInfoHash(type);
+        if (window.location.hash !== nextHash) history.pushState(null, '', nextHash);
+      }
+      setTimeout(() => el.infoModalCloseBtn?.focus(), 30);
+      return false;
+    }
+
+    function closeInfoModal(updateUrl = true) {
+      el.infoModal?.classList.remove('open');
+      infoModalType = null;
+      if (updateUrl && ['#id-types', '#rent-guide'].includes(window.location.hash)) {
+        history.pushState(null, '', window.location.pathname + window.location.search);
+      }
+    }
+
+    function setInfoModalLang(lang) {
+      infoModalLang = lang === 'en' ? 'en' : 'th';
+      renderInfoModal();
+    }
+
+    function openInfoModalFromUrl() {
+      const type = getInfoTypeFromUrl();
+      if (type) openInfoModal(type, false);
+    }
+
     async function handleLine(item, offer) {
       const offerState = getOfferState(offer);
       const windowInfo = getBookingWindow(offer, item);
@@ -1446,6 +1749,10 @@
             </div>
             ${noteHtml}
             <div class="offer-list">${offersHtml}</div>
+            <div class="card-help-actions">
+              <button class="help-btn" data-help="idTypes" type="button" onclick="return openInfoModal('idTypes')">${escapeHtml(tr('idTypesHelp'))}</button>
+              <button class="help-btn" data-help="rentGuide" type="button" onclick="return openInfoModal('rentGuide')">${escapeHtml(tr('rentGuideHelp'))}</button>
+            </div>
           </div>
         </article>
       `;
@@ -1819,6 +2126,8 @@
       setText('copyLineBtn', 'copyLine');
       setText('heroTitleText', 'heroTitle');
       setText('heroSubtitleText', 'heroSubtitle');
+      setText('idTypesHelpBtn', 'idTypesHelp');
+      setText('rentGuideHelpBtn', 'rentGuideHelp');
       el.searchInput.placeholder = tr('searchPlaceholder');
       setText('filterAllBtn', 'filterAll');
       setText('filterAvailableBtn', 'filterAvailable');
@@ -1888,6 +2197,9 @@
       if (!el.adminPanel.classList.contains('hidden') && sessionStorage.getItem(ADMIN_AUTH_KEY) === '1') {
         renderAdmin();
       }
+      if (el.infoModal?.classList.contains('open')) {
+        renderInfoModal();
+      }
     }
 
     function bindEvents() {
@@ -1904,8 +2216,17 @@
       el.copyModal.addEventListener('click', e => {
         if (e.target === el.copyModal) closeCopyModal();
       });
+      el.idTypesHelpBtn.addEventListener('click', () => openInfoModal('idTypes'));
+      el.rentGuideHelpBtn.addEventListener('click', () => openInfoModal('rentGuide'));
+      el.infoModalCloseBtn.addEventListener('click', closeInfoModal);
+      el.infoModalThBtn.addEventListener('click', () => setInfoModalLang('th'));
+      el.infoModalEnBtn.addEventListener('click', () => setInfoModalLang('en'));
+      el.infoModal.addEventListener('click', e => {
+        if (e.target === el.infoModal) closeInfoModal();
+      });
       document.addEventListener('keydown', e => {
         if (e.key === 'Escape') closeCopyModal();
+        if (e.key === 'Escape') closeInfoModal();
       });
 
       document.getElementById('openAdminBtn').addEventListener('click', openAdmin);
@@ -1965,6 +2286,7 @@
           await pullFromGist(loadSyncSettings(), true);
         }
       });
+      window.addEventListener('hashchange', openInfoModalFromUrl);
 
       document.addEventListener('visibilitychange', async () => {
         if (document.visibilityState === 'visible' && shouldAutoPullNow()) {
@@ -1975,6 +2297,7 @@
 
     bindEvents();
     applyLanguage();
+    openInfoModalFromUrl();
     bootSync();
   </script>
 </body>
