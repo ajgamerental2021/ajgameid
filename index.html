@@ -463,6 +463,7 @@
     const BOOKING_TTL_MS = 48 * 60 * 60 * 1000;
     const BOOKING_SHEET_ID = '13QZWpd_E-L_0G_Xd0zSL5_OcgV4sdwk9febXZSkZepc';
     const BOOKING_SHEET_GID = '879687466';
+    const BUSINESS_TIME_ZONE = 'Asia/Bangkok';
     const ADMIN_AUTH_KEY = 'aj_ps5_game_admin_auth_v1';
     const ADMIN_USER_HASH = 'a99a9002ea854fe9230d1501710fb35fc151238a0c8de2e50442952b6b3e86fc';
     const ADMIN_PASS_HASH = 'fdcc621fd584df74f42ad0f9adc6ff6f118ee39bada9ec0c02b0e57639fd0f6a';
@@ -925,8 +926,7 @@
       const ready = parseDdMmYyyy(m[1]);
       if (!ready) return o;
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const today = todayInBangkok();
       ready.setHours(0, 0, 0, 0);
 
       if (ready <= today) {
@@ -945,8 +945,7 @@
       const ready = parseIsoLikeDate(normalized.readyDate);
       if (!ready) return normalized;
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const today = todayInBangkok();
       ready.setHours(0, 0, 0, 0);
 
       if (ready <= today) {
@@ -1071,8 +1070,8 @@
         idNo: Number(row.idNo || row.id_no || 0),
         title: row.title || '',
         offerIndex: Number(row.offerIndex ?? row.offer_index ?? 0),
-        startDate: row.startDate || row.start_date || '',
-        endDate: row.endDate || row.end_date || '',
+        startDate: formatBangkokDate(row.startDate || row.start_date || ''),
+        endDate: formatBangkokDate(row.endDate || row.end_date || ''),
         days: Number(row.days || 0),
         typeLabel: row.typeLabel || row.type || '',
         price: Number(row.price || 0)
@@ -1176,8 +1175,8 @@
         idNo: Number(item.idNo),
         title: item.title || '',
         offerIndex: Number(offerIndex),
-        startDate: windowInfo.start,
-        endDate: windowInfo.end,
+        startDate: formatBangkokDate(windowInfo.start),
+        endDate: formatBangkokDate(windowInfo.end),
         days: Number(offerState.days || offer.days || 0),
         typeLabel: offerState.typeLabel || offer.typeLabel || '',
         price: Number(offerState.price || offer.price || 0)
@@ -1390,8 +1389,7 @@
       const hydrated = hydrateOffer(offer);
       const status = parseStatusText(hydrated.statusText);
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const today = todayInBangkok();
 
       let dateReached = false;
       if (status.availableDate) {
@@ -1442,6 +1440,43 @@
       return `${dd}/${mm}/${yyyy}`;
     }
 
+    function getBangkokDateParts(date = new Date()) {
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: BUSINESS_TIME_ZONE,
+        calendar: 'gregory',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).formatToParts(date).reduce((acc, part) => {
+        acc[part.type] = part.value;
+        return acc;
+      }, {});
+      return {
+        year: Number(parts.year),
+        month: Number(parts.month),
+        day: Number(parts.day)
+      };
+    }
+
+    function todayInBangkok() {
+      const parts = getBangkokDateParts();
+      return new Date(parts.year, parts.month - 1, parts.day);
+    }
+
+    function formatBangkokDate(value) {
+      if (!value) return '';
+      const raw = String(value).trim();
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) return raw;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+        const [y,m,d] = raw.split('-');
+        return `${d}/${m}/${y}`;
+      }
+      const d = new Date(value);
+      if (isNaN(d.getTime())) return raw;
+      const parts = getBangkokDateParts(d);
+      return `${String(parts.day).padStart(2, '0')}/${String(parts.month).padStart(2, '0')}/${parts.year}`;
+    }
+
     function parseIsoLikeDate(value) {
       const raw = String(value || '').trim();
       if (!raw) return null;
@@ -1467,14 +1502,15 @@
         const [y,m,d] = String(value).split('-');
         return `${d}/${m}/${y}`;
       }
-      return String(value);
+      return formatBangkokDate(value);
     }
 
     function formatDateTime(value) {
       const d = new Date(value);
       if (isNaN(d.getTime())) return String(value || '-');
       try {
-        return d.toLocaleString(currentLang === 'th' ? 'th-TH' : 'en-US', {
+        return d.toLocaleString(currentLang === 'th' ? 'th-TH-u-ca-gregory' : 'en-US', {
+          timeZone: BUSINESS_TIME_ZONE,
           year: 'numeric',
           month: '2-digit',
           day: '2-digit',
@@ -1496,8 +1532,7 @@
     function getRentalWindow(offer, item = null) {
       const offerState = getOfferState(offer);
       const parsed = parseStatusText(offerState.statusText);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const today = todayInBangkok();
 
       let start;
       if (item?.notReady) {
@@ -1802,13 +1837,14 @@
         return false;
       }
 
+      const bookingEndDate = formatDateForDisplay(booking.endDate);
       item.offers[offerIndex] = hydrateOffer({
         ...item.offers[offerIndex],
         capacity: 1,
         bookedCount: 1,
         available: false,
-        availableDate: booking.endDate,
-        statusText: `ยังไม่ว่าง\nจะว่าง ${booking.endDate}`
+        availableDate: bookingEndDate,
+        statusText: `ยังไม่ว่าง\nจะว่าง ${bookingEndDate}`
       });
       state[itemIndex] = item;
       saveState();
@@ -2259,8 +2295,8 @@
                   <div class="booking-fields">
                     <div>${tr('idLabel')}: #${Number(b.idNo || 0)}</div>
                     <div>${tr('bookingCreated')}: ${escapeHtml(formatDateTime(b.createdAt))}</div>
-                    <div>${tr('lineFieldStart')}: ${escapeHtml(b.startDate || '-')}</div>
-                    <div>${tr('lineFieldEnd')}: ${escapeHtml(b.endDate || '-')}</div>
+                    <div>${tr('lineFieldStart')}: ${escapeHtml(formatDateForDisplay(b.startDate) || '-')}</div>
+                    <div>${tr('lineFieldEnd')}: ${escapeHtml(formatDateForDisplay(b.endDate) || '-')}</div>
                     <div>${tr('lineFieldDays')}: ${Number(b.days || 0)} ${tr('daysUnit')}</div>
                     <div>${tr('lineFieldType')}: ${escapeHtml(localizeTypeLabel(b.typeLabel))}</div>
                     <div>${tr('lineFieldPrice')}: ${formatPrice(b.price)}</div>
