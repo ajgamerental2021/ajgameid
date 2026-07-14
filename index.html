@@ -176,8 +176,18 @@
     .admin-main { padding:18px; overflow:auto; }
     .admin-head { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
     .admin-note { background:#fafaf8; border:1px solid var(--line); color:#4b5563; border-radius:14px; padding:11px 12px; font-size:.92rem; margin-bottom:14px; }
-    .admin-item { width:100%; text-align:left; border:1px solid var(--line); background:#fff; color:var(--text); border-radius:15px; padding:11px 12px; cursor:pointer; margin-bottom:10px; }
-    .admin-item.active { border-color:#111; background:#f7f7f5; }
+    .admin-item { width:100%; text-align:left; border:0; background:transparent; color:var(--text); border-radius:10px; padding:9px 8px; cursor:pointer; margin:0; min-width:0; }
+    .admin-item-row { display:grid; grid-template-columns: minmax(0, 1fr) auto; gap:8px; align-items:center; margin-bottom:10px; border:1px solid var(--line); background:#fff; border-radius:15px; padding:4px; }
+    .admin-item-row.active { border-color:#111; background:#f7f7f5; }
+    .booking-list-btn { border:1px solid #bbf7d0; background:#ecfdf5; color:#15803d; border-radius:999px; padding:6px 8px; cursor:pointer; font-weight:900; font-size:.73rem; line-height:1.05; min-width:0; white-space:nowrap; }
+    .booking-list-btn.has-bookings { background:#16a34a; border-color:#16a34a; color:#fff; box-shadow:0 5px 12px rgba(22,163,74,.16); }
+    .booking-panel { border:1px solid var(--line); border-radius:16px; background:#fff; padding:13px; margin:12px 0 16px; }
+    .booking-panel h4 { margin:0 0 10px; font-size:1rem; }
+    .booking-list { display:grid; gap:10px; }
+    .booking-card { border:1px solid var(--line); border-radius:14px; padding:11px; background:#fafaf8; display:grid; gap:8px; }
+    .booking-card-head { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+    .booking-fields { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:6px 10px; color:#4b5563; font-size:.9rem; }
+    .booking-confirm-btn { border:1px solid #16a34a; background:#16a34a; color:#fff; border-radius:999px; padding:9px 13px; cursor:pointer; font-weight:900; }
     .form-grid { display:grid; gap:12px; grid-template-columns: repeat(2, minmax(0,1fr)); }
     .field { display:grid; gap:8px; }
     .field.full { grid-column:1 / -1; }
@@ -363,6 +373,10 @@
               <label id="syncTokenLabel" for="syncTokenInput">GitHub Token (สำหรับอัปเดต)</label>
               <input id="syncTokenInput" type="password" placeholder="ghp_xxx" />
             </div>
+            <div class="field">
+              <label id="bookingBackendUrlLabel" for="bookingBackendUrlInput">Booking Google Sheet Web App URL</label>
+              <input id="bookingBackendUrlInput" type="url" placeholder="https://script.google.com/macros/s/..." />
+            </div>
             <label class="switch-row">
               <input id="syncAutoCheckbox" type="checkbox" />
               <span id="syncAutoText">เปิด Auto Sync ตอนโหลดหน้าและหลังบันทึก</span>
@@ -383,6 +397,7 @@
           <div><strong style="font-size:1.12rem;" id="adminFormTitle">ฟอร์มแก้ไขข้อมูล</strong><div class="muted" id="adminFormSubtitle">แก้ชื่อเกม รูปภาพ ราคา จำนวนวัน สถานะ และจำนวนช่องได้จากตรงนี้</div></div>
           <button class="danger-btn" id="deleteItemBtn" type="button">ลบรายการนี้</button>
         </div>
+        <div id="bookingPanel" class="booking-panel"></div>
         <div class="form-grid">
           <div class="field"><label id="labelIdNo" for="fIdNo">ลำดับ / ID</label><input id="fIdNo" type="number" min="1" readonly /></div>
           <div class="field"><label id="labelPlatform" for="fPlatform">รองรับเครื่อง</label><input id="fPlatform" type="text" placeholder="เช่น PS5" /></div>
@@ -439,11 +454,15 @@
   </div>
 
   <script>
-    const SOURCE_DATA = {"config":{"siteTitle":"รายการเช่าไอดีเกม PS5","siteSubtitle":"ค้นหาชื่อเกม เช็กคิวว่าง และกดเช่า/จอง ได้ทันที","lineUrl":"https://lin.ee/P2mp0RK","brandName":"AJ เช่าเครื่องเกม","storageKey":"aj_ps5_game_id_rental_v1","adminHint":"การแก้ไขจากหน้า Admin จะบันทึกในเครื่องนี้ทันที และเมื่อเครื่องนี้มี GitHub token ระบบจะพยายามอัปเดตขึ้น Gist ให้อัตโนมัติ"},"ids":[{"idNo":1,"title":"Saros","platform":"PS5","images":["assets/image1.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Saros"],"sourceRows":[4]},{"idNo":2,"title":"Pragmata","platform":"PS5","images":["assets/image2.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Pragmata"],"sourceRows":[6]},{"idNo":3,"title":"Crimson Desert","platform":"PS5","images":["assets/image3.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"คิวเต็ม\nจะว่าง 30/04/2026","available":false,"availableDate":"30/04/2026","bookedCount":1},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Crimson Desert"],"sourceRows":[8]},{"idNo":4,"title":"Crimson Desert","platform":"PS5","images":["assets/image3.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Crimson Desert"],"sourceRows":[10]},{"idNo":5,"title":"Resident Evil Requiem","platform":"PS5","images":["assets/image4.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Resident Evil Requiem"],"sourceRows":[12]},{"idNo":6,"title":"REANIMAL","platform":"PS5","images":["assets/image5.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":180,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["REANIMAL"],"sourceRows":[14]},{"idNo":7,"title":"Nioh 3","platform":"PS5","images":["assets/image6.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Nioh 3"],"sourceRows":[16]},{"idNo":8,"title":"ARC Raiders / Hollow Knight: Silksong / Shinobi: Art of Vengeance / Baby Steps","platform":"PS5","images":["assets/image7.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 8 ☝️","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":250,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["ARC Raiders","Hollow Knight Silksong","Silksong","Shinobi Art of Vengeance","Baby Steps","ARC Raiders / Hollow Knight: Silksong / Shinobi: Art of Vengeance / Baby Steps"],"sourceRows":[18]},{"idNo":9,"title":"Call of Duty / Black Ops 7","platform":"PS5","images":["assets/image8.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Call of Duty","Black Ops 7","Call of Duty / Black Ops 7"],"sourceRows":[21]},{"idNo":10,"title":"Battlefield 6","platform":"PS5","images":["assets/image9.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Battlefield 6"],"sourceRows":[23]},{"idNo":11,"title":"Little Nightmares 3","platform":"PS5","images":["assets/image10.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":300,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Little Nightmares 3"],"sourceRows":[25]},{"idNo":12,"title":"PSN Plus Extra","platform":"PS5 / PS4","images":["assets/image11.webp"],"note":"","offers":[{"days":15,"typeLabel":"ไอดีร้าน","capacity":1,"price":180,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":300,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["PSN Plus Extra"],"sourceRows":[27]},{"idNo":13,"title":"Ghos of Yotei / (ID no. 1)","platform":"PS5","images":["assets/image12.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Ghos of Yotei","(ID no. 1)","Ghos of Yotei / (ID no. 1)"],"sourceRows":[29]},{"idNo":14,"title":"Ghos of Yotei / (ID no. 2)","platform":"PS5","images":["assets/image12.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Ghos of Yotei","(ID no. 2)","Ghos of Yotei / (ID no. 2)"],"sourceRows":[31]},{"idNo":15,"title":"Silent Hill f","platform":"PS5","images":["assets/image13.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Silent Hill f"],"sourceRows":[33]},{"idNo":16,"title":"NBA2K26","platform":"PS5","images":["assets/image14.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["NBA2K26"],"sourceRows":[35]},{"idNo":17,"title":"Dying Light / The Beast","platform":"PS5","images":["assets/image15.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Dying Light","The Beast","Dying Light / The Beast"],"sourceRows":[37]},{"idNo":18,"title":"EA Sports FC 26","platform":"PS5","images":["assets/image16.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["EA Sports FC 26"],"sourceRows":[39]},{"idNo":19,"title":"Doom / The Dark Ages","platform":"PS5","images":["assets/image17.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Doom","The Dark Ages","Doom / The Dark Ages"],"sourceRows":[41]},{"idNo":20,"title":"Borderlands 4","platform":"PS5","images":["assets/image18.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Borderlands 4"],"sourceRows":[43]},{"idNo":21,"title":"Lost Soul Aside","platform":"PS5","images":["assets/image19.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Lost Soul Aside"],"sourceRows":[45]},{"idNo":22,"title":"Metal Gear Solid / Delta Snake Eater","platform":"PS5","images":["assets/image20.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Metal Gear Solid","Delta Snake Eater","Metal Gear Solid / Delta Snake Eater"],"sourceRows":[47]},{"idNo":23,"title":"Mafia The Old Country","platform":"PS5","images":["assets/image21.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Mafia The Old Country"],"sourceRows":[49]},{"idNo":24,"title":"Wuchang: / Fallen Feathers","platform":"PS5","images":["assets/image22.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Wuchang:","Fallen Feathers","Wuchang: / Fallen Feathers"],"sourceRows":[51]},{"idNo":25,"title":"Ready or Not","platform":"PS5","images":["assets/image23.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Ready or Not"],"sourceRows":[53]},{"idNo":26,"title":"Elden Ring Nightreign / Death Stranding 2 / The First Berserker: Khazan","platform":"PS5","images":["assets/image24.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 26 ☝️","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Elden Ring Nightreign","Death Stranding 2","The First Berserker Khazan","Khazan","Elden Ring Nightreign / Death Stranding 2 / The First Berserker: Khazan"],"sourceRows":[55]},{"idNo":27,"title":"Death Stranding 2: / On The Beach","platform":"PS5","images":["assets/image25.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Death Stranding 2:","On The Beach","Death Stranding 2: / On The Beach"],"sourceRows":[59]},{"idNo":28,"title":"Rematch","platform":"PS5","images":["assets/image26.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":100,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Rematch"],"sourceRows":[61]},{"idNo":29,"title":"Elden Ring / Nightreign","platform":"PS5","images":["assets/image27.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Elden Ring","Nightreign","Elden Ring / Nightreign"],"sourceRows":[63]},{"idNo":30,"title":"Fantasy Life I","platform":"PS5","images":["assets/image28.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Fantasy Life I"],"sourceRows":[65]},{"idNo":31,"title":"Clair Obscur: / Expedition 33","platform":"PS5","images":["assets/image29.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Clair Obscur:","Expedition 33","Clair Obscur: / Expedition 33"],"sourceRows":[67]},{"idNo":32,"title":"Assassin's Creed Shadows","platform":"PS5","images":["assets/image30.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Assassin's Creed Shadows"],"sourceRows":[69]},{"idNo":33,"title":"The First Berserker / Khazan","platform":"PS5","images":["assets/image31.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["The First Berserker","Khazan","The First Berserker / Khazan"],"sourceRows":[71]},{"idNo":34,"title":"Monster Hunter Wilds","platform":"PS5","images":["assets/image32.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Monster Hunter Wilds"],"sourceRows":[73]},{"idNo":35,"title":"Split Fiction","platform":"PS5","images":["assets/image33.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Split Fiction"],"sourceRows":[75]},{"idNo":36,"title":"Kingdom Come / Deliverance 2","platform":"PS5","images":["assets/image34.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Kingdom Come","Deliverance 2","Kingdom Come / Deliverance 2"],"sourceRows":[77]},{"idNo":37,"title":"Stellar Blade / + / Devil May Cry 5 / (มี 2 เกม)","platform":"PS5","images":["assets/image35.webp","assets/image36.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Stellar Blade","+","Devil May Cry 5","(มี 2 เกม)","Stellar Blade / + / Devil May Cry 5 / (มี 2 เกม)"],"sourceRows":[79]},{"idNo":38,"title":"Black Myth Wukong","platform":"PS5","images":["assets/image37.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Black Myth Wukong"],"sourceRows":[81]},{"idNo":39,"title":"Dynasty Warrior Origins","platform":"PS5","images":["assets/image38.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Dynasty Warrior Origins"],"sourceRows":[83]},{"idNo":40,"title":"Call of Duty / Black Ops 6","platform":"PS5","images":["assets/image39.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Call of Duty","Black Ops 6","Call of Duty / Black Ops 6"],"sourceRows":[85]},{"idNo":41,"title":"1.Path of Exile 2 / 2.Party Animal / (มี 2 เกม)","platform":"PS5","images":["assets/image40.webp","assets/image41.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":100,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["1.Path of Exile 2","2.Party Animal","(มี 2 เกม)","1.Path of Exile 2 / 2.Party Animal / (มี 2 เกม)"],"sourceRows":[87]},{"idNo":42,"title":"รวมหลายเกม: Astro Bot / UFC 5 / Spider-Man 2 / Hogwarts Legacy / CoD MW3 / GTA V / EA FC 24 / NBA 2K24","platform":"PS5","images":["assets/image42.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 42 ☝️","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Astro Bot","UFC 5","Spider-Man 2","Marvel Spider-Man 2","Hogwarts Legacy","Call of Duty Modern Warfare III","Modern Warfare III","Battlefield V","Spider-Man Miles Morales","Star Wars Jedi Survivor","GTA V","Grand Theft Auto V","EA Sports FC 24","FC24","NBA 2K24","MotoGP 23","Madden 24","รวมหลายเกม: Astro Bot / UFC 5 / Spider-Man 2 / Hogwarts Legacy / CoD MW3 / GTA V / EA FC 24 / NBA 2K24"],"sourceRows":[89]},{"idNo":43,"title":"NBA2K25","platform":"PS5","images":["assets/image43.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":100,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["NBA2K25"],"sourceRows":[94]},{"idNo":44,"title":"Metaphor : Refantazio","platform":"PS5","images":["assets/image44.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Metaphor : Refantazio"],"sourceRows":[96]},{"idNo":45,"title":"Dragonball Sparking Zero","platform":"PS5","images":["assets/image45.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Dragonball Sparking Zero"],"sourceRows":[98]},{"idNo":46,"title":"Persona 3 Reload","platform":"PS5","images":["assets/image46.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":100,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Persona 3 Reload"],"sourceRows":[100]},{"idNo":47,"title":"รวมหลายเกม: Naruto Storm 4 / Overcooked! 2 / Red Dead Redemption 2 / The Sims 4 / Resident Evil 4 / Ghost of Tsushima","platform":"PS5","images":["assets/image47.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 47 ☝️","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":300,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Naruto Shippuden Ultimate Ninja Storm 4","Overcooked 2","Red Dead Redemption 2","The Sims 4","Resident Evil 4","Doraemon Story of Seasons","Ghost of Tsushima","รวมหลายเกม: Naruto Storm 4 / Overcooked! 2 / Red Dead Redemption 2 / The Sims 4 / Resident Evil 4 / Ghost of Tsushima"],"sourceRows":[102]},{"idNo":48,"title":"รวมหลายเกม: Hogwarts Legacy / Path of Exile 2 / Spider-Man 2 / DBZ Kakarot / Granblue Fantasy: Relink / Like a Dragon: Infinite Wealth","platform":"PS5","images":["assets/image48.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 48 ☝️","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":2,"price":350,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Hogwarts Legacy","Path of Exile 2","Spider-Man 2","Dragon Ball Z Kakarot","DragonBall Z Kakarot","Granblue Fantasy Relink","Like a Dragon Infinite Wealth","รวมหลายเกม: Hogwarts Legacy / Path of Exile 2 / Spider-Man 2 / DBZ Kakarot / Granblue Fantasy: Relink / Like a Dragon: Infinite Wealth"],"sourceRows":[106]},{"idNo":49,"title":"รวมหลายเกมจากภาพคอลลาจ","platform":"PS5","images":["assets/image49.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 49 ☝️","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Rise of the Ronin","Ratchet & Clank","Persona 5 Tactica","MediEvil","Horizon Forbidden West","Ghost of Tsushima","Elden Ring","Demon's Souls","Chrono Cross","Bloodborne","The Last of Us Part II","Visions of Mana","รวมหลายเกมจากภาพคอลลาจ"],"sourceRows":[110]}]};
+    const SOURCE_DATA = {"config":{"siteTitle":"รายการเช่าไอดีเกม PS5","siteSubtitle":"ค้นหาชื่อเกม เช็กคิวว่าง และกดเช่า/จอง ได้ทันที","lineUrl":"https://lin.ee/P2mp0RK","brandName":"AJ เช่าเครื่องเกม","storageKey":"aj_ps5_game_id_rental_v1","adminHint":"การแก้ไขจากหน้า Admin จะบันทึกในเครื่องนี้ทันที และเมื่อเครื่องนี้มี GitHub token ระบบจะพยายามอัปเดตขึ้น Gist ให้อัตโนมัติ","bookingBackendUrl":""},"ids":[{"idNo":1,"title":"Saros","platform":"PS5","images":["assets/image1.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Saros"],"sourceRows":[4]},{"idNo":2,"title":"Pragmata","platform":"PS5","images":["assets/image2.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Pragmata"],"sourceRows":[6]},{"idNo":3,"title":"Crimson Desert","platform":"PS5","images":["assets/image3.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"คิวเต็ม\nจะว่าง 30/04/2026","available":false,"availableDate":"30/04/2026","bookedCount":1},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Crimson Desert"],"sourceRows":[8]},{"idNo":4,"title":"Crimson Desert","platform":"PS5","images":["assets/image3.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Crimson Desert"],"sourceRows":[10]},{"idNo":5,"title":"Resident Evil Requiem","platform":"PS5","images":["assets/image4.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Resident Evil Requiem"],"sourceRows":[12]},{"idNo":6,"title":"REANIMAL","platform":"PS5","images":["assets/image5.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":180,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["REANIMAL"],"sourceRows":[14]},{"idNo":7,"title":"Nioh 3","platform":"PS5","images":["assets/image6.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Nioh 3"],"sourceRows":[16]},{"idNo":8,"title":"ARC Raiders / Hollow Knight: Silksong / Shinobi: Art of Vengeance / Baby Steps","platform":"PS5","images":["assets/image7.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 8 ☝️","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":250,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["ARC Raiders","Hollow Knight Silksong","Silksong","Shinobi Art of Vengeance","Baby Steps","ARC Raiders / Hollow Knight: Silksong / Shinobi: Art of Vengeance / Baby Steps"],"sourceRows":[18]},{"idNo":9,"title":"Call of Duty / Black Ops 7","platform":"PS5","images":["assets/image8.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Call of Duty","Black Ops 7","Call of Duty / Black Ops 7"],"sourceRows":[21]},{"idNo":10,"title":"Battlefield 6","platform":"PS5","images":["assets/image9.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Battlefield 6"],"sourceRows":[23]},{"idNo":11,"title":"Little Nightmares 3","platform":"PS5","images":["assets/image10.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":300,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Little Nightmares 3"],"sourceRows":[25]},{"idNo":12,"title":"PSN Plus Extra","platform":"PS5 / PS4","images":["assets/image11.webp"],"note":"","offers":[{"days":15,"typeLabel":"ไอดีร้าน","capacity":1,"price":180,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":300,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["PSN Plus Extra"],"sourceRows":[27]},{"idNo":13,"title":"Ghos of Yotei / (ID no. 1)","platform":"PS5","images":["assets/image12.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Ghos of Yotei","(ID no. 1)","Ghos of Yotei / (ID no. 1)"],"sourceRows":[29]},{"idNo":14,"title":"Ghos of Yotei / (ID no. 2)","platform":"PS5","images":["assets/image12.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":500,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Ghos of Yotei","(ID no. 2)","Ghos of Yotei / (ID no. 2)"],"sourceRows":[31]},{"idNo":15,"title":"Silent Hill f","platform":"PS5","images":["assets/image13.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Silent Hill f"],"sourceRows":[33]},{"idNo":16,"title":"NBA2K26","platform":"PS5","images":["assets/image14.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["NBA2K26"],"sourceRows":[35]},{"idNo":17,"title":"Dying Light / The Beast","platform":"PS5","images":["assets/image15.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Dying Light","The Beast","Dying Light / The Beast"],"sourceRows":[37]},{"idNo":18,"title":"EA Sports FC 26","platform":"PS5","images":["assets/image16.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["EA Sports FC 26"],"sourceRows":[39]},{"idNo":19,"title":"Doom / The Dark Ages","platform":"PS5","images":["assets/image17.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Doom","The Dark Ages","Doom / The Dark Ages"],"sourceRows":[41]},{"idNo":20,"title":"Borderlands 4","platform":"PS5","images":["assets/image18.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Borderlands 4"],"sourceRows":[43]},{"idNo":21,"title":"Lost Soul Aside","platform":"PS5","images":["assets/image19.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Lost Soul Aside"],"sourceRows":[45]},{"idNo":22,"title":"Metal Gear Solid / Delta Snake Eater","platform":"PS5","images":["assets/image20.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Metal Gear Solid","Delta Snake Eater","Metal Gear Solid / Delta Snake Eater"],"sourceRows":[47]},{"idNo":23,"title":"Mafia The Old Country","platform":"PS5","images":["assets/image21.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Mafia The Old Country"],"sourceRows":[49]},{"idNo":24,"title":"Wuchang: / Fallen Feathers","platform":"PS5","images":["assets/image22.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Wuchang:","Fallen Feathers","Wuchang: / Fallen Feathers"],"sourceRows":[51]},{"idNo":25,"title":"Ready or Not","platform":"PS5","images":["assets/image23.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Ready or Not"],"sourceRows":[53]},{"idNo":26,"title":"Elden Ring Nightreign / Death Stranding 2 / The First Berserker: Khazan","platform":"PS5","images":["assets/image24.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 26 ☝️","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Elden Ring Nightreign","Death Stranding 2","The First Berserker Khazan","Khazan","Elden Ring Nightreign / Death Stranding 2 / The First Berserker: Khazan"],"sourceRows":[55]},{"idNo":27,"title":"Death Stranding 2: / On The Beach","platform":"PS5","images":["assets/image25.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Death Stranding 2:","On The Beach","Death Stranding 2: / On The Beach"],"sourceRows":[59]},{"idNo":28,"title":"Rematch","platform":"PS5","images":["assets/image26.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":100,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Rematch"],"sourceRows":[61]},{"idNo":29,"title":"Elden Ring / Nightreign","platform":"PS5","images":["assets/image27.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Elden Ring","Nightreign","Elden Ring / Nightreign"],"sourceRows":[63]},{"idNo":30,"title":"Fantasy Life I","platform":"PS5","images":["assets/image28.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Fantasy Life I"],"sourceRows":[65]},{"idNo":31,"title":"Clair Obscur: / Expedition 33","platform":"PS5","images":["assets/image29.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Clair Obscur:","Expedition 33","Clair Obscur: / Expedition 33"],"sourceRows":[67]},{"idNo":32,"title":"Assassin's Creed Shadows","platform":"PS5","images":["assets/image30.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Assassin's Creed Shadows"],"sourceRows":[69]},{"idNo":33,"title":"The First Berserker / Khazan","platform":"PS5","images":["assets/image31.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["The First Berserker","Khazan","The First Berserker / Khazan"],"sourceRows":[71]},{"idNo":34,"title":"Monster Hunter Wilds","platform":"PS5","images":["assets/image32.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Monster Hunter Wilds"],"sourceRows":[73]},{"idNo":35,"title":"Split Fiction","platform":"PS5","images":["assets/image33.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Split Fiction"],"sourceRows":[75]},{"idNo":36,"title":"Kingdom Come / Deliverance 2","platform":"PS5","images":["assets/image34.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Kingdom Come","Deliverance 2","Kingdom Come / Deliverance 2"],"sourceRows":[77]},{"idNo":37,"title":"Stellar Blade / + / Devil May Cry 5 / (มี 2 เกม)","platform":"PS5","images":["assets/image35.webp","assets/image36.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Stellar Blade","+","Devil May Cry 5","(มี 2 เกม)","Stellar Blade / + / Devil May Cry 5 / (มี 2 เกม)"],"sourceRows":[79]},{"idNo":38,"title":"Black Myth Wukong","platform":"PS5","images":["assets/image37.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Black Myth Wukong"],"sourceRows":[81]},{"idNo":39,"title":"Dynasty Warrior Origins","platform":"PS5","images":["assets/image38.webp"],"note":"","offers":[{"days":10,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Dynasty Warrior Origins"],"sourceRows":[83]},{"idNo":40,"title":"Call of Duty / Black Ops 6","platform":"PS5","images":["assets/image39.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Call of Duty","Black Ops 6","Call of Duty / Black Ops 6"],"sourceRows":[85]},{"idNo":41,"title":"1.Path of Exile 2 / 2.Party Animal / (มี 2 เกม)","platform":"PS5","images":["assets/image40.webp","assets/image41.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":100,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["1.Path of Exile 2","2.Party Animal","(มี 2 เกม)","1.Path of Exile 2 / 2.Party Animal / (มี 2 เกม)"],"sourceRows":[87]},{"idNo":42,"title":"รวมหลายเกม: Astro Bot / UFC 5 / Spider-Man 2 / Hogwarts Legacy / CoD MW3 / GTA V / EA FC 24 / NBA 2K24","platform":"PS5","images":["assets/image42.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 42 ☝️","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":400,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Astro Bot","UFC 5","Spider-Man 2","Marvel Spider-Man 2","Hogwarts Legacy","Call of Duty Modern Warfare III","Modern Warfare III","Battlefield V","Spider-Man Miles Morales","Star Wars Jedi Survivor","GTA V","Grand Theft Auto V","EA Sports FC 24","FC24","NBA 2K24","MotoGP 23","Madden 24","รวมหลายเกม: Astro Bot / UFC 5 / Spider-Man 2 / Hogwarts Legacy / CoD MW3 / GTA V / EA FC 24 / NBA 2K24"],"sourceRows":[89]},{"idNo":43,"title":"NBA2K25","platform":"PS5","images":["assets/image43.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":100,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["NBA2K25"],"sourceRows":[94]},{"idNo":44,"title":"Metaphor : Refantazio","platform":"PS5","images":["assets/image44.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Metaphor : Refantazio"],"sourceRows":[96]},{"idNo":45,"title":"Dragonball Sparking Zero","platform":"PS5","images":["assets/image45.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Dragonball Sparking Zero"],"sourceRows":[98]},{"idNo":46,"title":"Persona 3 Reload","platform":"PS5","images":["assets/image46.webp"],"note":"","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":100,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Persona 3 Reload"],"sourceRows":[100]},{"idNo":47,"title":"รวมหลายเกม: Naruto Storm 4 / Overcooked! 2 / Red Dead Redemption 2 / The Sims 4 / Resident Evil 4 / Ghost of Tsushima","platform":"PS5","images":["assets/image47.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 47 ☝️","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":300,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Naruto Shippuden Ultimate Ninja Storm 4","Overcooked 2","Red Dead Redemption 2","The Sims 4","Resident Evil 4","Doraemon Story of Seasons","Ghost of Tsushima","รวมหลายเกม: Naruto Storm 4 / Overcooked! 2 / Red Dead Redemption 2 / The Sims 4 / Resident Evil 4 / Ghost of Tsushima"],"sourceRows":[102]},{"idNo":48,"title":"รวมหลายเกม: Hogwarts Legacy / Path of Exile 2 / Spider-Man 2 / DBZ Kakarot / Granblue Fantasy: Relink / Like a Dragon: Infinite Wealth","platform":"PS5","images":["assets/image48.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 48 ☝️","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":200,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0},{"days":30,"typeLabel":"ไอดีลูกค้า","capacity":1,"price":350,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Hogwarts Legacy","Path of Exile 2","Spider-Man 2","Dragon Ball Z Kakarot","DragonBall Z Kakarot","Granblue Fantasy Relink","Like a Dragon Infinite Wealth","รวมหลายเกม: Hogwarts Legacy / Path of Exile 2 / Spider-Man 2 / DBZ Kakarot / Granblue Fantasy: Relink / Like a Dragon: Infinite Wealth"],"sourceRows":[106]},{"idNo":49,"title":"รวมหลายเกมจากภาพคอลลาจ","platform":"PS5","images":["assets/image49.webp"],"note":"☝️ ไอดีนี้ได้ทุกเกมในรูปด้านบนของลำดับที่ 49 ☝️","offers":[{"days":30,"typeLabel":"ไอดีร้าน","capacity":1,"price":150,"statusText":"ว่าง","available":true,"availableDate":null,"bookedCount":0}],"searchTerms":["Rise of the Ronin","Ratchet & Clank","Persona 5 Tactica","MediEvil","Horizon Forbidden West","Ghost of Tsushima","Elden Ring","Demon's Souls","Chrono Cross","Bloodborne","The Last of Us Part II","Visions of Mana","รวมหลายเกมจากภาพคอลลาจ"],"sourceRows":[110]}]};
     const CONFIG = SOURCE_DATA.config;
     const INITIAL_IDS = structuredClone(SOURCE_DATA.ids);
     const STORAGE_KEY = CONFIG.storageKey || 'aj_ps5_game_id_rental_v2';
     const SYNC_SETTINGS_KEY = STORAGE_KEY + '_gist_sync';
+    const BOOKING_STORAGE_KEY = STORAGE_KEY + '_booking_requests';
+    const BOOKING_TTL_MS = 48 * 60 * 60 * 1000;
+    const BOOKING_SHEET_ID = '13QZWpd_E-L_0G_Xd0zSL5_OcgV4sdwk9febXZSkZepc';
+    const BOOKING_SHEET_GID = '879687466';
     const ADMIN_AUTH_KEY = 'aj_ps5_game_admin_auth_v1';
     const ADMIN_USER_HASH = 'a99a9002ea854fe9230d1501710fb35fc151238a0c8de2e50442952b6b3e86fc';
     const ADMIN_PASS_HASH = 'fdcc621fd584df74f42ad0f9adc6ff6f118ee39bada9ec0c02b0e57639fd0f6a';
@@ -594,6 +613,15 @@
         packageCapacity: 'จำนวนช่องทั้งหมด',
         packageBooked: 'ช่องที่ถูกจองแล้ว',
         packageStatus: 'สถานะ',
+        bookingList: 'Booking list',
+        bookingEmpty: 'ยังไม่มีรายการจองที่รอ Confirm',
+        bookingConfirm: 'Confirm',
+        bookingCreated: 'เวลาที่กด',
+        bookingConfirmed: 'Confirm แล้ว',
+        bookingExpiredNote: 'รายการที่ยังไม่ Confirm จะหายเองภายใน 48 ชม.',
+        bookingBackendUrl: 'Booking Google Sheet Web App URL',
+        bookingBackendSaved: 'บันทึก Web App URL แล้ว',
+        bookingBackendFailed: 'เชื่อมต่อ Booking Sheet ไม่สำเร็จ',
         packageExample: 'ตัวอย่าง: ถ้ามีไอดีลูกค้า 2 ช่อง และถูกจองไป 1 ช่อง ให้ใส่ “จำนวนช่องทั้งหมด = 2” และ “ช่องที่ถูกจองแล้ว = 1” พร้อมสถานะเป็น “ว่าง”',
         removePackage: 'ลบแพ็กเกจนี้',
         statusPlaceholder: 'เช่น ว่าง หรือ ยังไม่ว่าง\nพร้อมใช้งานวันที่ 30/04/2026',
@@ -738,6 +766,15 @@
         packageCapacity: 'Total slots',
         packageBooked: 'Booked slots',
         packageStatus: 'Status',
+        bookingList: 'Booking list',
+        bookingEmpty: 'No pending booking requests',
+        bookingConfirm: 'Confirm',
+        bookingCreated: 'Clicked at',
+        bookingConfirmed: 'Confirmed',
+        bookingExpiredNote: 'Unconfirmed requests are removed automatically after 48 hours.',
+        bookingBackendUrl: 'Booking Google Sheet Web App URL',
+        bookingBackendSaved: 'Web App URL saved',
+        bookingBackendFailed: 'Could not connect to the booking sheet',
         packageExample: 'Example: if a customer ID has 2 slots and 1 slot is already booked, set “Total slots = 2”, “Booked slots = 1”, and keep the status as “Available”.',
         removePackage: 'Remove this package',
         statusPlaceholder: 'e.g. Available or Not available yet\nReady on 30/04/2026',
@@ -766,6 +803,7 @@
     let currentLang = localStorage.getItem('aj_ps5_site_lang') || 'th';
     let infoModalType = null;
     let infoModalLang = currentLang;
+    saveState();
 
     const el = {
       searchInput: document.getElementById('searchInput'),
@@ -812,6 +850,7 @@
       syncGistIdInput: document.getElementById('syncGistIdInput'),
       syncFileInput: document.getElementById('syncFileInput'),
       syncTokenInput: document.getElementById('syncTokenInput'),
+      bookingBackendUrlInput: document.getElementById('bookingBackendUrlInput'),
       syncAutoCheckbox: document.getElementById('syncAutoCheckbox')
     };
 
@@ -919,9 +958,8 @@
     function hydrateOffer(offer) {
       offer = normalizeExpiredOfferStatus(offer);
       const typeLabel = offer?.typeLabel || tr('typeGame');
-      const defaultCapacity = /ลูกค้า|customer/i.test(typeLabel) ? 2 : 1;
       const status = parseStatusText(offer?.statusText);
-      const capacity = Math.max(1, Number(offer?.capacity || defaultCapacity));
+      const capacity = 1;
       let bookedCount = Number.isFinite(Number(offer?.bookedCount)) ? Number(offer.bookedCount) : (status.available ? 0 : capacity);
       bookedCount = Math.min(capacity, Math.max(0, bookedCount));
       return {
@@ -983,12 +1021,179 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
 
+    function pruneBookings(bookings) {
+      const now = Date.now();
+      return (Array.isArray(bookings) ? bookings : []).filter(b => {
+        if (b?.confirmedAt) return false;
+        const createdMs = Date.parse(b?.createdAt || '');
+        return Number.isFinite(createdMs) && now - createdMs < BOOKING_TTL_MS;
+      });
+    }
+
+    function loadBookings() {
+      try {
+        const bookings = pruneBookings(JSON.parse(localStorage.getItem(BOOKING_STORAGE_KEY) || '[]'));
+        localStorage.setItem(BOOKING_STORAGE_KEY, JSON.stringify(bookings));
+        return bookings;
+      } catch (err) {
+        console.warn('load bookings failed', err);
+        return [];
+      }
+    }
+
+    function saveBookings(bookings) {
+      localStorage.setItem(BOOKING_STORAGE_KEY, JSON.stringify(pruneBookings(bookings)));
+    }
+
+    function mergeBookings(remoteBookings = []) {
+      const merged = [...loadBookings()];
+      remoteBookings.forEach(remote => {
+        if (!remote?.bookingId) return;
+        const exists = merged.some(local => String(local.bookingId) === String(remote.bookingId));
+        if (!exists) merged.push(remote);
+      });
+      saveBookings(merged);
+      return loadBookings();
+    }
+
+    function getBookingsForId(idNo) {
+      return loadBookings().filter(b => Number(b.idNo) === Number(idNo));
+    }
+
+    function getBookingBackendUrl() {
+      return String(el.bookingBackendUrlInput?.value || loadSyncSettings().bookingBackendUrl || CONFIG.bookingBackendUrl || '').trim();
+    }
+
+    function normalizeBackendBookings(rows) {
+      return (Array.isArray(rows) ? rows : []).map(row => ({
+        bookingId: String(row.bookingId || ''),
+        createdAt: row.createdAt || row.created_at || '',
+        idNo: Number(row.idNo || row.id_no || 0),
+        title: row.title || '',
+        offerIndex: Number(row.offerIndex ?? row.offer_index ?? 0),
+        startDate: row.startDate || row.start_date || '',
+        endDate: row.endDate || row.end_date || '',
+        days: Number(row.days || 0),
+        typeLabel: row.typeLabel || row.type || '',
+        price: Number(row.price || 0)
+      })).filter(row => row.bookingId && row.idNo);
+    }
+
+    function bookingBackendJsonp(action, params = {}) {
+      const baseUrl = getBookingBackendUrl();
+      if (!baseUrl) return Promise.resolve(null);
+      return new Promise((resolve, reject) => {
+        const callbackName = 'bookingBackendCb_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+        const script = document.createElement('script');
+        const url = new URL(baseUrl);
+        url.searchParams.set('action', action);
+        url.searchParams.set('callback', callbackName);
+        url.searchParams.set('sheetId', BOOKING_SHEET_ID);
+        url.searchParams.set('gid', BOOKING_SHEET_GID);
+        Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, String(value)));
+
+        const cleanup = () => {
+          delete window[callbackName];
+          script.remove();
+        };
+        window[callbackName] = data => {
+          cleanup();
+          resolve(data);
+        };
+        script.onerror = () => {
+          cleanup();
+          reject(new Error('Booking backend JSONP failed'));
+        };
+        script.src = url.toString();
+        document.body.appendChild(script);
+      });
+    }
+
+    async function refreshBookingsFromBackend(silent = true) {
+      try {
+        const res = await bookingBackendJsonp('list');
+        if (!res) return loadBookings();
+        if (res.ok === false) throw new Error(res.error || 'Booking backend error');
+        const bookings = mergeBookings(normalizeBackendBookings(res.bookings || []));
+        if (!silent) showToast(tr('syncPulled'));
+        return bookings;
+      } catch (err) {
+        console.warn('booking backend refresh failed', err);
+        if (!silent) showToast(tr('bookingBackendFailed'));
+        return loadBookings();
+      }
+    }
+
+    async function sendBookingToBackend(booking) {
+      const url = getBookingBackendUrl();
+      if (!url) return false;
+      try {
+        await fetch(url, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify({
+            action: 'add',
+            sheetId: BOOKING_SHEET_ID,
+            gid: BOOKING_SHEET_GID,
+            booking
+          })
+        });
+        return true;
+      } catch (err) {
+        console.warn('booking backend add failed', err);
+        return false;
+      }
+    }
+
+    async function confirmBookingInBackend(bookingId) {
+      const url = getBookingBackendUrl();
+      if (!url) return false;
+      try {
+        await fetch(url, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify({
+            action: 'confirm',
+            sheetId: BOOKING_SHEET_ID,
+            gid: BOOKING_SHEET_GID,
+            bookingId
+          })
+        });
+        return true;
+      } catch (err) {
+        console.warn('booking backend confirm failed', err);
+        return false;
+      }
+    }
+
+    async function addBookingRequest(item, offer, offerIndex, windowInfo) {
+      const offerState = getOfferState(offer);
+      const bookings = loadBookings();
+      const nowIso = new Date().toISOString();
+      const booking = {
+        bookingId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        createdAt: nowIso,
+        idNo: Number(item.idNo),
+        title: item.title || '',
+        offerIndex: Number(offerIndex),
+        startDate: windowInfo.start,
+        endDate: windowInfo.end,
+        days: Number(offerState.days || offer.days || 0),
+        typeLabel: offerState.typeLabel || offer.typeLabel || '',
+        price: Number(offerState.price || offer.price || 0)
+      };
+      bookings.push(booking);
+      saveBookings(bookings);
+      await sendBookingToBackend(booking);
+      return booking;
+    }
+
     function loadSyncSettings() {
       try {
         const raw = localStorage.getItem(SYNC_SETTINGS_KEY);
-        return raw ? JSON.parse(raw) : { gistId: '802f3a4e9b999023127241fd8a85da57', filename: 'aj-ps5-game-id-data.json', token: '', autoSync: true };
+        return { gistId: '802f3a4e9b999023127241fd8a85da57', filename: 'aj-ps5-game-id-data.json', token: '', autoSync: true, bookingBackendUrl: CONFIG.bookingBackendUrl || '', ...(raw ? JSON.parse(raw) : {}) };
       } catch (err) {
-        return { gistId: '802f3a4e9b999023127241fd8a85da57', filename: 'aj-ps5-game-id-data.json', token: '', autoSync: true };
+        return { gistId: '802f3a4e9b999023127241fd8a85da57', filename: 'aj-ps5-game-id-data.json', token: '', autoSync: true, bookingBackendUrl: CONFIG.bookingBackendUrl || '' };
       }
     }
 
@@ -997,6 +1202,7 @@
         gistId: String(el.syncGistIdInput?.value || '').trim(),
         filename: String(el.syncFileInput?.value || '').trim() || 'aj-ps5-game-id-data.json',
         token: String(el.syncTokenInput?.value || '').trim(),
+        bookingBackendUrl: String(el.bookingBackendUrlInput?.value || '').trim(),
         autoSync: !!el.syncAutoCheckbox?.checked
       };
     }
@@ -1006,11 +1212,13 @@
       if (el.syncGistIdInput) el.syncGistIdInput.value = s.gistId || '802f3a4e9b999023127241fd8a85da57';
       if (el.syncFileInput) el.syncFileInput.value = s.filename || 'aj-ps5-game-id-data.json';
       if (el.syncTokenInput) el.syncTokenInput.value = s.token || '';
+      if (el.bookingBackendUrlInput) el.bookingBackendUrlInput.value = s.bookingBackendUrl || '';
       if (el.syncAutoCheckbox) el.syncAutoCheckbox.checked = (typeof s.autoSync === 'boolean' ? s.autoSync : true);
     }
 
     function saveSyncSettings() {
       const s = getSyncSettingsFromForm();
+      CONFIG.bookingBackendUrl = s.bookingBackendUrl || '';
       localStorage.setItem(SYNC_SETTINGS_KEY, JSON.stringify(s));
       showToast(tr('syncSaved'));
       return s;
@@ -1040,6 +1248,14 @@
         if (!chosen) throw new Error('No gist file found');
         const content = chosen.content || '';
         const parsed = JSON.parse(content);
+        if (parsed.config && typeof parsed.config === 'object') {
+          Object.assign(CONFIG, parsed.config);
+          const currentSettings = loadSyncSettings();
+          if (CONFIG.bookingBackendUrl && !currentSettings.bookingBackendUrl) {
+            localStorage.setItem(SYNC_SETTINGS_KEY, JSON.stringify({ ...currentSettings, bookingBackendUrl: CONFIG.bookingBackendUrl }));
+          }
+          fillSyncForm();
+        }
         const nextState = normalizeSequentialIds((parsed.ids || parsed).map(item => ({
           ...item,
           offers: (item.offers || []).map(hydrateOffer)
@@ -1073,6 +1289,10 @@
       const payload = {
         app: 'aj-ps5-game-id-rental',
         updatedAt: new Date().toISOString(),
+        config: {
+          ...CONFIG,
+          bookingBackendUrl: s.bookingBackendUrl || CONFIG.bookingBackendUrl || ''
+        },
         ids: state
       };
       try {
@@ -1248,6 +1468,22 @@
         return `${d}/${m}/${y}`;
       }
       return String(value);
+    }
+
+    function formatDateTime(value) {
+      const d = new Date(value);
+      if (isNaN(d.getTime())) return String(value || '-');
+      try {
+        return d.toLocaleString(currentLang === 'th' ? 'th-TH' : 'en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (err) {
+        return d.toLocaleString();
+      }
     }
 
     function addDays(date, daysToAdd) {
@@ -1537,6 +1773,63 @@
       renderInfoModal();
     }
 
+    async function confirmBooking(bookingId) {
+      const bookings = loadBookings();
+      const booking = bookings.find(b => String(b.bookingId) === String(bookingId));
+      if (!booking) {
+        showToast(tr('bookingEmpty'));
+        renderAdmin();
+        return false;
+      }
+
+      const itemIndex = state.findIndex(item => Number(item.idNo) === Number(booking.idNo));
+      if (itemIndex === -1) {
+        showToast(tr('invalidJson'));
+        return false;
+      }
+
+      const item = structuredClone(state[itemIndex]);
+      let offerIndex = Number(booking.offerIndex);
+      if (!item.offers?.[offerIndex]) {
+        offerIndex = (item.offers || []).findIndex(o =>
+          Number(o.days) === Number(booking.days)
+          && Number(o.price) === Number(booking.price)
+          && normalize(o.typeLabel) === normalize(booking.typeLabel)
+        );
+      }
+      if (offerIndex < 0 || !item.offers?.[offerIndex]) {
+        showToast(tr('invalidJson'));
+        return false;
+      }
+
+      item.offers[offerIndex] = hydrateOffer({
+        ...item.offers[offerIndex],
+        capacity: 1,
+        bookedCount: 1,
+        available: false,
+        availableDate: booking.endDate,
+        statusText: `ยังไม่ว่าง\nจะว่าง ${booking.endDate}`
+      });
+      state[itemIndex] = item;
+      saveState();
+
+      const remainingBookings = bookings.filter(b => String(b.bookingId) !== String(bookingId));
+      saveBookings(remainingBookings);
+      await confirmBookingInBackend(bookingId);
+
+      adminSelectedId = item.idNo;
+      adminDraft = structuredClone(state.find(x => Number(x.idNo) === Number(item.idNo)));
+      renderAdmin();
+      renderResults();
+      showToast(tr('bookingConfirmed'));
+
+      const syncSettings = saveSyncSettings();
+      if (syncSettings.gistId && syncSettings.token) {
+        await pushToGist(syncSettings, false);
+      }
+      return false;
+    }
+
     function openInfoModalFromUrl() {
       const type = getInfoTypeFromUrl();
       if (type) openInfoModal(type, false);
@@ -1684,6 +1977,7 @@
           }
         }
 
+        await addBookingRequest(item, offer, Number(offerIndex), windowInfo);
         showToast(copied ? tr('lineToastCopied') : tr('lineToastOpen'));
         showCopyModal();
         return false;
@@ -1830,6 +2124,9 @@
         adminDraft = found ? structuredClone(found) : null;
       }
       renderAdmin();
+      refreshBookingsFromBackend(true).then(() => {
+        if (!el.adminPanel.classList.contains('hidden')) renderAdmin();
+      });
     }
 
     async function sha256(text) {
@@ -1876,7 +2173,7 @@
         images: [],
         offers: [
           { days: 10, typeLabel: 'ไอดีร้าน', capacity: 1, bookedCount: 0, price: 200, statusText: 'ว่าง', available: true, availableDate: null },
-          { days: 30, typeLabel: 'ไอดีลูกค้า', capacity: 2, bookedCount: 0, price: 500, statusText: 'ว่าง', available: true, availableDate: null }
+          { days: 30, typeLabel: 'ไอดีลูกค้า', capacity: 1, bookedCount: 0, price: 500, statusText: 'ว่าง', available: true, availableDate: null }
         ]
       };
     }
@@ -1886,12 +2183,19 @@
     }
 
     function renderAdmin() {
-      const itemsHtml = sortItems(state).map(item => `
-        <button class="admin-item ${item.idNo === adminSelectedId ? 'active' : ''}" data-admin-id="${item.idNo}" type="button">
-          <div style="font-weight:800;">${tr('idLabel')} #${item.idNo} • ${escapeHtml(item.title || '-')}</div>
-          <div class="muted" style="margin-top:4px;">${escapeHtml(item.platform || tr('platformFallback'))} • ${tr('listCount', { count: item.offers?.length || 0 })}</div>
-        </button>
-      `).join('');
+      const bookings = loadBookings();
+      const itemsHtml = sortItems(state).map(item => {
+        const bookingCount = bookings.filter(b => Number(b.idNo) === Number(item.idNo)).length;
+        return `
+          <div class="admin-item-row ${item.idNo === adminSelectedId ? 'active' : ''}">
+            <button class="admin-item" data-admin-id="${item.idNo}" type="button">
+              <div style="font-weight:800;">${tr('idLabel')} #${item.idNo} • ${escapeHtml(item.title || '-')}</div>
+              <div class="muted" style="margin-top:4px;">${escapeHtml(item.platform || tr('platformFallback'))} • ${tr('listCount', { count: item.offers?.length || 0 })}</div>
+            </button>
+            <button class="booking-list-btn ${bookingCount ? 'has-bookings' : ''}" data-booking-id="${item.idNo}" type="button">${tr('bookingList')}${bookingCount ? ` (${bookingCount})` : ''}</button>
+          </div>
+        `;
+      }).join('');
       el.adminList.innerHTML = itemsHtml;
 
       document.querySelectorAll('[data-admin-id]').forEach(btn => {
@@ -1901,6 +2205,18 @@
           const found = state.find(x => x.idNo === adminSelectedId);
           adminDraft = found ? structuredClone(found) : null;
           renderAdmin();
+        });
+      });
+      document.querySelectorAll('[data-booking-id]').forEach(btn => {
+        btn.addEventListener('click', async e => {
+          e.stopPropagation();
+          adminSelectedId = Number(btn.getAttribute('data-booking-id'));
+          isCreatingNew = false;
+          const found = state.find(x => x.idNo === adminSelectedId);
+          adminDraft = found ? structuredClone(found) : null;
+          await refreshBookingsFromBackend(false);
+          renderAdmin();
+          document.getElementById('bookingPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
       });
 
@@ -1917,6 +2233,47 @@
       el.fImages.value = (adminDraft.images || []).join('\n');
       renderImagePreview();
       renderOffersEditor();
+      renderBookingPanel();
+    }
+
+    function renderBookingPanel() {
+      const bookings = getBookingsForId(adminDraft?.idNo);
+      const panel = document.getElementById('bookingPanel');
+      if (!panel) return;
+      if (!adminDraft) {
+        panel.innerHTML = '';
+        return;
+      }
+      panel.innerHTML = `
+        <h4>${tr('bookingList')} (${bookings.length})</h4>
+        <div class="muted" style="margin-bottom:10px;">${tr('bookingExpiredNote')}</div>
+        <div class="booking-list">
+          ${
+            bookings.length
+              ? bookings.map((b, idx) => `
+                <div class="booking-card">
+                  <div class="booking-card-head">
+                    <strong>#${idx + 1} • ${escapeHtml(b.title || adminDraft.title || '-')}</strong>
+                    <button class="booking-confirm-btn" data-confirm-booking="${escapeHtml(b.bookingId)}" type="button">${tr('bookingConfirm')}</button>
+                  </div>
+                  <div class="booking-fields">
+                    <div>${tr('idLabel')}: #${Number(b.idNo || 0)}</div>
+                    <div>${tr('bookingCreated')}: ${escapeHtml(formatDateTime(b.createdAt))}</div>
+                    <div>${tr('lineFieldStart')}: ${escapeHtml(b.startDate || '-')}</div>
+                    <div>${tr('lineFieldEnd')}: ${escapeHtml(b.endDate || '-')}</div>
+                    <div>${tr('lineFieldDays')}: ${Number(b.days || 0)} ${tr('daysUnit')}</div>
+                    <div>${tr('lineFieldType')}: ${escapeHtml(localizeTypeLabel(b.typeLabel))}</div>
+                    <div>${tr('lineFieldPrice')}: ${formatPrice(b.price)}</div>
+                  </div>
+                </div>
+              `).join('')
+              : `<div class="muted">${tr('bookingEmpty')}</div>`
+          }
+        </div>
+      `;
+      panel.querySelectorAll('[data-confirm-booking]').forEach(btn => {
+        btn.addEventListener('click', () => confirmBooking(btn.getAttribute('data-confirm-booking')));
+      });
     }
 
     function renderImagePreview() {
@@ -1940,7 +2297,7 @@
               <div class="field"><label>${tr('packageDays')}</label><input type="number" min="1" value="${h.days ?? ''}" data-offer-field="days" data-offer-index="${idx}" /></div>
               <div class="field"><label>${tr('packageType')}</label><input type="text" value="${escapeHtml(h.typeLabel ?? '')}" data-offer-field="typeLabel" data-offer-index="${idx}" /></div>
               <div class="field"><label>${tr('packagePrice')}</label><input type="number" min="0" value="${h.price ?? ''}" data-offer-field="price" data-offer-index="${idx}" /></div>
-              <div class="field"><label>${tr('packageCapacity')}</label><input type="number" min="1" value="${h.capacity ?? 1}" data-offer-field="capacity" data-offer-index="${idx}" /></div>
+              <div class="field"><label>${tr('packageCapacity')}</label><input type="number" min="1" value="1" data-offer-field="capacity" data-offer-index="${idx}" readonly /></div>
               <div class="field"><label>${tr('packageBooked')}</label><input type="number" min="0" value="${h.bookedCount ?? 0}" data-offer-field="bookedCount" data-offer-index="${idx}" /></div>
             </div>
             <div class="field" style="margin-top:10px;">
@@ -2163,6 +2520,7 @@
       setText('syncGistIdLabel', 'syncGistId');
       setText('syncFileLabel', 'syncFile');
       setText('syncTokenLabel', 'syncToken');
+      setText('bookingBackendUrlLabel', 'bookingBackendUrl');
       setText('syncAutoText', 'syncAuto');
       setText('createGistBtn', 'syncCreate');
       setText('saveSyncBtn', 'syncSave');
