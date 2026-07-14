@@ -1024,6 +1024,7 @@
       const now = Date.now();
       return (Array.isArray(bookings) ? bookings : []).filter(b => {
         if (b?.confirmedAt) return false;
+        if (String(b?.status || '').trim().toLowerCase() === 'confirmed') return false;
         const createdMs = Date.parse(b?.createdAt || '');
         return Number.isFinite(createdMs) && now - createdMs < BOOKING_TTL_MS;
       });
@@ -1044,13 +1045,8 @@
       localStorage.setItem(BOOKING_STORAGE_KEY, JSON.stringify(pruneBookings(bookings)));
     }
 
-    function mergeBookings(remoteBookings = []) {
-      const merged = [...loadBookings()];
-      remoteBookings.forEach(remote => {
-        if (!remote?.bookingId) return;
-        const exists = merged.some(local => String(local.bookingId) === String(remote.bookingId));
-        if (!exists) merged.push(remote);
-      });
+    function replaceBookingsFromBackend(remoteBookings = []) {
+      const merged = normalizeBackendBookings(remoteBookings);
       saveBookings(merged);
       return loadBookings();
     }
@@ -1074,8 +1070,10 @@
         endDate: formatBangkokDate(row.endDate || row.end_date || ''),
         days: Number(row.days || 0),
         typeLabel: row.typeLabel || row.type || '',
-        price: Number(row.price || 0)
-      })).filter(row => row.bookingId && row.idNo);
+        price: Number(row.price || 0),
+        status: String(row.status || '').trim().toLowerCase(),
+        confirmedAt: row.confirmedAt || row.confirmed_at || ''
+      })).filter(row => row.bookingId && row.idNo && row.status !== 'confirmed' && !row.confirmedAt);
     }
 
     function bookingBackendJsonp(action, params = {}) {
@@ -1113,7 +1111,7 @@
         const res = await bookingBackendJsonp('list');
         if (!res) return loadBookings();
         if (res.ok === false) throw new Error(res.error || 'Booking backend error');
-        const bookings = mergeBookings(normalizeBackendBookings(res.bookings || []));
+        const bookings = replaceBookingsFromBackend(res.bookings || []);
         if (!silent) showToast(tr('syncPulled'));
         return bookings;
       } catch (err) {
