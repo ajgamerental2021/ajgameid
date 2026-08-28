@@ -207,6 +207,9 @@
     .copy-modal-card h3 { margin:0 0 10px; font-size:1.22rem; line-height:1.25; }
     .copy-modal-card p { margin:0 0 18px; color:#4b5563; line-height:1.55; }
     .copy-modal-card .primary-btn { min-width:120px; }
+    .copy-modal-actions { display:grid; gap:10px; }
+    .copy-guide-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; width:100%; border:1px solid #15803d; border-radius:12px; background:#16a34a; color:#fff; padding:11px 14px; font:inherit; font-weight:900; cursor:pointer; }
+    .copy-guide-btn:hover { background:#15803d; }
     .info-modal { position:fixed; inset:0; z-index:96; display:none; place-items:center; padding:18px; background:rgba(17,24,39,.34); backdrop-filter:blur(8px); }
     .info-modal.open { display:grid; }
     .info-modal-card { width:min(860px, 100%); max-height:min(86vh, 920px); overflow:hidden; background:#fff; border:1px solid var(--line); border-radius:20px; box-shadow:0 24px 70px rgba(17,24,39,.22); display:flex; flex-direction:column; }
@@ -434,7 +437,10 @@
     <div class="copy-modal-card">
       <h3 id="copyModalTitle">คัดลอกข้อมูลเรียบร้อย</h3>
       <p id="copyModalMessage">นำข้อความไปส่งต่อในแชทที่คุยกับทางร้านได้เลย</p>
-      <button class="primary-btn" id="copyModalOkBtn" type="button">ตกลง</button>
+      <div class="copy-modal-actions">
+        <button class="copy-guide-btn" id="copyModalGuideBtn" type="button"><span aria-hidden="true">▶</span><span id="copyModalGuideText">วิธีการแจ้งเช่าไอดี</span></button>
+        <button class="primary-btn" id="copyModalOkBtn" type="button">ตกลง</button>
+      </div>
     </div>
   </div>
   <div id="infoModal" class="info-modal" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
@@ -518,6 +524,7 @@
         copyModalTitle: 'คัดลอกข้อมูลเรียบร้อย',
         copyModalMessage: 'นำข้อความไปส่งต่อในแชทที่คุยกับทางร้านได้เลย',
         copyModalOk: 'ตกลง',
+        preparing: 'กำลังเตรียมข้อความ...',
         idTypesHelp: 'ไอดีร้านกับไอดีลูกค้า ต่างกันยังไง ?',
         rentGuideHelp: 'วิธีการแจ้งเช่าไอดี',
         infoModalFallbackTitle: 'ข้อมูลเพิ่มเติม',
@@ -691,6 +698,7 @@
         copyModalTitle: 'Information copied',
         copyModalMessage: 'Send the copied message in your current chat with the shop.',
         copyModalOk: 'OK',
+        preparing: 'Preparing...',
         idTypesHelp: 'Store ID vs Customer ID',
         rentGuideHelp: 'How to request an ID rental',
         infoModalFallbackTitle: 'More information',
@@ -821,6 +829,8 @@
       copyModal: document.getElementById('copyModal'),
       copyModalTitle: document.getElementById('copyModalTitle'),
       copyModalMessage: document.getElementById('copyModalMessage'),
+      copyModalGuideBtn: document.getElementById('copyModalGuideBtn'),
+      copyModalGuideText: document.getElementById('copyModalGuideText'),
       copyModalOkBtn: document.getElementById('copyModalOkBtn'),
       infoModal: document.getElementById('infoModal'),
       infoModalTitle: document.getElementById('infoModalTitle'),
@@ -930,7 +940,6 @@
       if (!ready) return o;
 
       const today = todayInBangkok();
-      ready.setHours(0, 0, 0, 0);
 
       if (ready <= today) {
         o.statusText = 'ว่าง';
@@ -949,7 +958,6 @@
       if (!ready) return normalized;
 
       const today = todayInBangkok();
-      ready.setHours(0, 0, 0, 0);
 
       if (ready <= today) {
         normalized.notReady = false;
@@ -970,7 +978,7 @@
         price: Number(offer?.price || 0),
         statusText: offer?.statusText || 'ว่าง',
         available: status.available,
-        availableDate: status.availableDate || null,
+        availableDate: status.availableDate || formatDateForDisplay(offer?.availableDate) || null,
         capacity,
         bookedCount
       };
@@ -1023,13 +1031,18 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
 
+    function isConfirmedBooking(booking) {
+      return Boolean(booking?.confirmedAt || booking?.confirmed_at)
+        || String(booking?.status || '').trim().toLowerCase() === 'confirmed';
+    }
+
     function pruneBookings(bookings) {
       const now = Date.now();
       return (Array.isArray(bookings) ? bookings : []).filter(b => {
-        if (b?.confirmedAt) return false;
-        if (String(b?.status || '').trim().toLowerCase() === 'confirmed') return false;
+        if (isConfirmedBooking(b)) return false;
         const createdMs = Date.parse(b?.createdAt || '');
-        return Number.isFinite(createdMs) && now - createdMs < BOOKING_TTL_MS;
+        const ageMs = now - createdMs;
+        return Number.isFinite(createdMs) && ageMs >= 0 && ageMs < BOOKING_TTL_MS;
       });
     }
 
@@ -1079,7 +1092,7 @@
         price: Number(row.price || 0),
         status: String(row.status || '').trim().toLowerCase(),
         confirmedAt: row.confirmedAt || row.confirmed_at || ''
-      })).filter(row => row.bookingId && row.idNo && row.status !== 'confirmed' && !row.confirmedAt);
+      })).filter(row => row.bookingId && row.idNo && !isConfirmedBooking(row));
     }
 
     async function bookingBackendRequest(action, payload = {}) {
@@ -1133,7 +1146,7 @@
       }
     }
 
-    async function addBookingRequest(item, offer, offerIndex, windowInfo) {
+    function addBookingRequest(item, offer, offerIndex, windowInfo) {
       const offerState = getOfferState(offer);
       const bookings = loadBookings();
       const nowIso = new Date().toISOString();
@@ -1149,10 +1162,11 @@
         typeLabel: offerState.typeLabel || offer.typeLabel || '',
         price: Number(offerState.price || offer.price || 0)
       };
-      const saved = await sendBookingToBackend(booking);
-      if (!saved) throw new Error('Booking backend rejected the request');
       bookings.push(booking);
       saveBookings(bookings);
+      void sendBookingToBackend(booking).then(saved => {
+        if (!saved) console.warn('booking saved locally but backend sync failed', booking.bookingId);
+      });
       return booking;
     }
 
@@ -1357,14 +1371,14 @@
     function getOfferState(offer) {
       const hydrated = hydrateOffer(offer);
       const status = parseStatusText(hydrated.statusText);
+      const availableDate = hydrated.availableDate || status.availableDate;
 
       const today = todayInBangkok();
 
       let dateReached = false;
-      if (status.availableDate) {
-        const ready = parseDdMmYyyy(status.availableDate);
+      if (availableDate) {
+        const ready = parseDdMmYyyy(availableDate);
         if (ready) {
-          ready.setHours(0, 0, 0, 0);
           dateReached = ready <= today;
         }
       }
@@ -1374,16 +1388,16 @@
 
       let label = tr('busyBadge');
       let badgeClass = 'status-busy';
-      let text = status.availableDate ? tr('availableOn', { date: status.availableDate }) : tr('fullNow');
+      let text = availableDate ? tr('availableOn', { date: availableDate }) : tr('fullNow');
 
       if (available) {
         label = tr('availableNow');
         badgeClass = 'status-ok';
         text = '';
-      } else if (status.availableDate) {
+      } else if (availableDate) {
         label = tr('busyBadge');
         badgeClass = 'status-busy';
-        text = tr('availableOn', { date: status.availableDate });
+        text = tr('availableOn', { date: availableDate });
       } else if (!status.available && hydrated.bookedCount > 0 && hydrated.bookedCount < hydrated.capacity) {
         label = tr('soonBadge');
         badgeClass = 'status-soon';
@@ -1401,11 +1415,15 @@
       return [...items].sort((a, b) => (a.idNo || 0) - (b.idNo || 0));
     }
 
+    function dateOnly(year, month, day) {
+      return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), 12));
+    }
+
     function ddmmyyyy(date) {
       const d = new Date(date);
-      const dd = String(d.getDate()).padStart(2,'0');
-      const mm = String(d.getMonth()+1).padStart(2,'0');
-      const yyyy = d.getFullYear();
+      const dd = String(d.getUTCDate()).padStart(2,'0');
+      const mm = String(d.getUTCMonth()+1).padStart(2,'0');
+      const yyyy = d.getUTCFullYear();
       return `${dd}/${mm}/${yyyy}`;
     }
 
@@ -1429,7 +1447,7 @@
 
     function todayInBangkok() {
       const parts = getBangkokDateParts();
-      return new Date(parts.year, parts.month - 1, parts.day);
+      return dateOnly(parts.year, parts.month, parts.day);
     }
 
     function formatBangkokDate(value) {
@@ -1450,9 +1468,9 @@
       const raw = String(value || '').trim();
       if (!raw) return null;
       const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+      if (iso) return dateOnly(iso[1], iso[2], iso[3]);
       const th = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      if (th) return new Date(Number(th[3]), Number(th[2]) - 1, Number(th[1]));
+      if (th) return dateOnly(th[3], th[2], th[1]);
       const d = new Date(raw);
       return isNaN(d.getTime()) ? null : d;
     }
@@ -1461,7 +1479,7 @@
       if (!text) return null;
       const m = String(text).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
       if (!m) return null;
-      return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+      return dateOnly(m[3], m[2], m[1]);
     }
 
     function formatDateForDisplay(value) {
@@ -1493,9 +1511,19 @@
 
     function addDays(date, daysToAdd) {
       const d = new Date(date);
-      d.setHours(12,0,0,0);
-      d.setDate(d.getDate() + daysToAdd);
+      d.setUTCDate(d.getUTCDate() + daysToAdd);
       return d;
+    }
+
+    function calculateRentalWindow(today, itemReadyDate, offerAvailableDate, days, forceAdvanceBooking = false) {
+      const candidates = [today, itemReadyDate, offerAvailableDate].filter(date => date instanceof Date && !isNaN(date.getTime()));
+      const start = new Date(Math.max(...candidates.map(date => date.getTime())));
+      const end = addDays(start, Math.max(1, Number(days || 1)) - 1);
+      return {
+        start: ddmmyyyy(start),
+        end: ddmmyyyy(end),
+        mode: forceAdvanceBooking || start.getTime() > today.getTime() ? 'reserve' : 'rent'
+      };
     }
 
     function getRentalWindow(offer, item = null) {
@@ -1503,28 +1531,15 @@
       const parsed = parseStatusText(offerState.statusText);
       const today = todayInBangkok();
 
-      let start;
-      if (item?.notReady) {
-        const ready = parseIsoLikeDate(item?.readyDate);
-        if (ready) {
-          ready.setHours(0, 0, 0, 0);
-          start = ready > today ? ready : today;
-        } else {
-          start = new Date(today);
-        }
-      } else if (offerState.available) {
-        start = new Date(today);
-      } else {
-        start = parseDdMmYyyy(parsed.availableDate) || new Date(today);
-      }
-
-      const end = new Date(start);
-      end.setDate(end.getDate() + Math.max(1, Number(offerState.days || 1)) - 1);
-      return {
-        start: ddmmyyyy(start),
-        end: ddmmyyyy(end),
-        mode: (offerState.available && !item?.notReady) ? 'rent' : 'reserve'
-      };
+      const itemReadyDate = parseIsoLikeDate(item?.readyDate);
+      const offerAvailableDate = parseDdMmYyyy(offerState.availableDate || parsed.availableDate);
+      return calculateRentalWindow(
+        today,
+        itemReadyDate,
+        offerAvailableDate,
+        offerState.days,
+        Boolean(item?.notReady || !offerState.available)
+      );
     }
 
     function getBookingWindow(offer, item = null) {
@@ -1569,6 +1584,7 @@
       if (!el.copyModal) return;
       el.copyModalTitle.textContent = tr('copyModalTitle');
       el.copyModalMessage.textContent = tr('copyModalMessage');
+      el.copyModalGuideText.textContent = tr('rentGuideHelp');
       el.copyModalOkBtn.textContent = tr('copyModalOk');
       el.copyModal.classList.add('open');
       setTimeout(() => el.copyModalOkBtn?.focus(), 30);
@@ -1922,7 +1938,18 @@
     }
 
     
-    async function handleLineShare(itemId, offerIndex) {
+    function restoreShareButton(button, label) {
+      if (!button) return;
+      button.disabled = false;
+      button.textContent = label;
+    }
+
+    async function handleLineShare(button, itemId, offerIndex) {
+      const originalLabel = button?.textContent || '';
+      if (button) {
+        button.disabled = true;
+        button.textContent = tr('preparing');
+      }
       try {
         const item = state.find(x => Number(x.idNo) === Number(itemId));
         const offer = item?.offers?.[Number(offerIndex)];
@@ -1954,13 +1981,7 @@
           tr('lineMessageFooter')
         ].join('\n');
 
-        try {
-          await addBookingRequest(item, offer, Number(offerIndex), windowInfo);
-        } catch (error) {
-          console.error('booking save failed', error);
-          alert(tr('bookingSaveFailed'));
-          return false;
-        }
+        addBookingRequest(item, offer, Number(offerIndex), windowInfo);
 
         let copied = false;
         try {
@@ -1997,6 +2018,8 @@
         console.error('LINE share failed', err);
         alert('เกิดข้อผิดพลาดตอนเตรียมข้อความสำหรับ LINE');
         return false;
+      } finally {
+        restoreShareButton(button, originalLabel);
       }
     }
 
@@ -2030,7 +2053,7 @@
                     : `<span class="status-badge ${offerState.badgeClass}">${escapeHtml(offerState.statusLabel)}</span>`
                 }
               </div>
-              <button class="primary-btn" type="button" onclick="return handleLineShare(${item.idNo}, ${offerIndex})">${btnLabel}</button>
+              <button class="primary-btn" type="button" onclick="return handleLineShare(this, ${item.idNo}, ${offerIndex})">${btnLabel}</button>
             </div>
           </div>
         `;
@@ -2583,6 +2606,10 @@
       el.langThBtn.addEventListener('click', () => { currentLang = 'th'; applyLanguage(); });
       el.langEnBtn.addEventListener('click', () => { currentLang = 'en'; applyLanguage(); });
       el.copyModalOkBtn.addEventListener('click', closeCopyModal);
+      el.copyModalGuideBtn.addEventListener('click', () => {
+        closeCopyModal();
+        openInfoModal('rentGuide');
+      });
       el.copyModal.addEventListener('click', e => {
         if (e.target === el.copyModal) closeCopyModal();
       });
