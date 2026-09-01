@@ -852,7 +852,10 @@
     let lineIdentity = { ready: false, accessToken: '', userId: '' };
     let copyModalUsesLine = false;
     let isCreatingNew = false;
-    let currentLang = localStorage.getItem('aj_ps5_site_lang') || 'th';
+    const requestedLang = new URLSearchParams(window.location.search).get('lang');
+    let currentLang = ['th', 'en'].includes(requestedLang)
+      ? requestedLang
+      : (localStorage.getItem('aj_ps5_site_lang') || 'th');
     let infoModalType = null;
     let infoModalLang = currentLang;
     saveState();

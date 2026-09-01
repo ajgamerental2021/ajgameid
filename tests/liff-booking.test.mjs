@@ -36,3 +36,8 @@ test('Admin entry is hidden unless the URL explicitly enables admin mode', () =>
   assert.match(html, /id="openAdminBtn"[^>]*hidden/);
   assert.match(html, /getElementById\('openAdminBtn'\)\.hidden = new URLSearchParams\(window\.location\.search\)\.get\('admin'\) !== '1'/);
 });
+
+test('language query overrides the saved language for LIFF deep links', () => {
+  assert.match(html, /const requestedLang = new URLSearchParams\(window\.location\.search\)\.get\('lang'\)/);
+  assert.match(html, /\['th', 'en'\]\.includes\(requestedLang\)/);
+});
