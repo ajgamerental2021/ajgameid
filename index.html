@@ -402,7 +402,7 @@
         </div>
         <div id="bookingPanel" class="booking-panel"></div>
         <div class="form-grid">
-          <div class="field"><label id="labelIdNo" for="fIdNo">ลำดับ / ID</label><input id="fIdNo" type="number" min="1" readonly /></div>
+          <div class="field"><label id="labelIdNo" for="fIdNo">ลำดับ / ID</label><input id="fIdNo" type="number" min="1" /></div>
           <div class="field"><label id="labelPlatform" for="fPlatform">รองรับเครื่อง</label><input id="fPlatform" type="text" placeholder="เช่น PS5" /></div>
           <div class="field full"><label id="labelTitle" for="fTitle">ชื่อหลักที่โชว์บนการ์ด</label><input id="fTitle" type="text" placeholder="เช่น Saros หรือ รายการหลายเกม" /></div>
           <div class="field full"><label id="labelSearchTerms" for="fSearchTerms">คำค้นหาเพิ่มเติม (คั่นด้วย comma)</label><textarea id="fSearchTerms" placeholder="เช่น Spider-Man 2, Ghost of Tsushima, Hogwarts Legacy"></textarea></div>
@@ -577,7 +577,7 @@
         adminFormTitle: 'ฟอร์มแก้ไขข้อมูล',
         adminFormSubtitle: 'แก้ชื่อเกม รูปภาพ ราคา จำนวนวัน สถานะ และจำนวนช่องได้จากตรงนี้',
         deleteThis: 'ลบรายการนี้',
-        labelIdNo: 'ลำดับ ID (อัตโนมัติ)',
+        labelIdNo: 'ลำดับ ID (แก้ไขได้)',
         labelPlatform: 'รองรับเครื่อง',
         labelTitle: 'ชื่อหลักที่โชว์บนการ์ด',
         phTitle: 'เช่น Saros หรือ รายการหลายเกม',
@@ -615,6 +615,7 @@
         invalidJson: 'ไฟล์ JSON ไม่ถูกต้อง',
         draftNeedId: 'กรุณาใส่เลข ID',
         duplicateId: 'เลข ID นี้ถูกใช้งานแล้ว',
+        readyDateRequired: 'กรุณาเลือกวันที่พร้อมให้บริการ',
         addImageDone: 'เพิ่มรูปเข้า draft แล้ว',
         packageDays: 'จำนวนวัน',
         packageType: 'ประเภทไอดี',
@@ -732,7 +733,7 @@
         adminFormTitle: 'Edit form',
         adminFormSubtitle: 'Edit game names, images, prices, duration, status, and slot counts here.',
         deleteThis: 'Delete this item',
-        labelIdNo: 'ID (auto)',
+        labelIdNo: 'ID order (editable)',
         labelPlatform: 'Platform',
         labelTitle: 'Main title shown on the card',
         phTitle: 'e.g. Saros or a multi-game package',
@@ -770,6 +771,7 @@
         invalidJson: 'Invalid JSON file',
         draftNeedId: 'Please enter an ID number',
         duplicateId: 'This ID number is already used',
+        readyDateRequired: 'Please select the ready-for-service date',
         addImageDone: 'Image added to draft',
         packageDays: 'Duration',
         packageType: 'ID type',
@@ -988,8 +990,8 @@
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         const base = raw ? JSON.parse(raw) : structuredClone(INITIAL_IDS);
-        if (!Array.isArray(base)) return normalizeSequentialIds(structuredClone(INITIAL_IDS));
-        return normalizeSequentialIds(base.map(item => {
+        if (!Array.isArray(base)) return preserveItemIds(structuredClone(INITIAL_IDS));
+        return preserveItemIds(base.map(item => {
           const normalizedItem = normalizeExpiredItemStatus({
             ...item,
             notReady: Boolean(item?.notReady),
@@ -1002,7 +1004,7 @@
         }));
       } catch (err) {
         console.error(err);
-        return normalizeSequentialIds(structuredClone(INITIAL_IDS).map(item => {
+        return preserveItemIds(structuredClone(INITIAL_IDS).map(item => {
           const normalizedItem = normalizeExpiredItemStatus({
             ...item,
             notReady: Boolean(item?.notReady),
@@ -1017,7 +1019,7 @@
     }
 
     function saveState() {
-      state = normalizeSequentialIds((state || []).map(item => {
+      state = preserveItemIds((state || []).map(item => {
         const normalizedItem = normalizeExpiredItemStatus({
           ...item,
           notReady: Boolean(item?.notReady),
@@ -1238,7 +1240,7 @@
           }
           fillSyncForm();
         }
-        const nextState = normalizeSequentialIds((parsed.ids || parsed).map(item => ({
+        const nextState = preserveItemIds((parsed.ids || parsed).map(item => ({
           ...item,
           offers: (item.offers || []).map(hydrateOffer)
         })));
@@ -1411,8 +1413,22 @@
       return getOfferState(offer).available;
     }
 
+    function readyDateSortValue(item) {
+      const value = String(item?.readyDate || '');
+      return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : '';
+    }
+
     function sortItems(items) {
-      return [...items].sort((a, b) => (a.idNo || 0) - (b.idNo || 0));
+      return [...items].sort((a, b) => {
+        const aNotReady = Boolean(a?.notReady);
+        const bNotReady = Boolean(b?.notReady);
+        if (aNotReady !== bNotReady) return aNotReady ? -1 : 1;
+        if (aNotReady && bNotReady) {
+          const dateOrder = readyDateSortValue(b).localeCompare(readyDateSortValue(a));
+          if (dateOrder) return dateOrder;
+        }
+        return (Number(a?.idNo) || 0) - (Number(b?.idNo) || 0);
+      });
     }
 
     function dateOnly(year, month, day) {
@@ -2198,7 +2214,7 @@
       isCreatingNew = true;
       adminSelectedId = null;
       adminDraft = {
-        idNo: 1,
+        idNo: Math.max(0, ...state.map(item => Number(item.idNo) || 0)) + 1,
         platform: 'PS5',
         title: '',
         searchTerms: [],
@@ -2213,8 +2229,18 @@
       };
     }
 
-    function normalizeSequentialIds(items) {
-      return items.map((item, idx) => ({ ...item, idNo: idx + 1 }));
+    function preserveItemIds(items) {
+      const used = new Set();
+      let nextId = Math.max(0, ...(items || []).map(item => Number(item?.idNo) || 0)) + 1;
+      return (items || []).map(item => {
+        let idNo = Number(item?.idNo);
+        if (!Number.isInteger(idNo) || idNo < 1 || used.has(idNo)) {
+          while (used.has(nextId)) nextId += 1;
+          idNo = nextId++;
+        }
+        used.add(idNo);
+        return { ...item, idNo };
+      });
     }
 
     function renderAdmin() {
@@ -2256,7 +2282,7 @@
       });
 
       if (!adminDraft) return;
-      el.fIdNo.readOnly = true;
+      el.fIdNo.readOnly = false;
       el.fIdNo.value = adminDraft.idNo ?? '';
       el.fPlatform.value = adminDraft.platform ?? '';
       el.fTitle.value = adminDraft.title ?? '';
@@ -2400,24 +2426,33 @@
         showToast(tr('phTitle'));
         return;
       }
+      if (!Number.isInteger(draft.idNo) || draft.idNo < 1) {
+        showToast(tr('draftNeedId'));
+        return;
+      }
+      if (draft.notReady && !draft.readyDate) {
+        showToast(tr('readyDateRequired'));
+        return;
+      }
+      const duplicate = state.some(item => Number(item.idNo) === draft.idNo && (isCreatingNew || Number(item.idNo) !== Number(adminSelectedId)));
+      if (duplicate) {
+        showToast(tr('duplicateId'));
+        return;
+      }
       if (isCreatingNew || adminSelectedId === null) {
-        const shifted = state.map(item => ({ ...structuredClone(item), idNo: Number(item.idNo || 0) + 1 }));
-        draft.idNo = 1;
-        state = normalizeSequentialIds([draft, ...shifted]);
-        adminSelectedId = 1;
-        adminDraft = structuredClone(state[0]);
+        state = [...state, draft];
+        adminSelectedId = draft.idNo;
+        adminDraft = structuredClone(draft);
         isCreatingNew = false;
       } else {
         const existingIndex = state.findIndex(x => Number(x.idNo) === Number(adminSelectedId));
         if (existingIndex === -1) {
-          state = normalizeSequentialIds([draft, ...state]);
-          adminSelectedId = 1;
-          adminDraft = structuredClone(state[0]);
+          state = [...state, draft];
+          adminSelectedId = draft.idNo;
+          adminDraft = structuredClone(draft);
           isCreatingNew = false;
         } else {
-          draft.idNo = existingIndex + 1;
           state[existingIndex] = draft;
-          state = normalizeSequentialIds(state);
           adminSelectedId = draft.idNo;
           adminDraft = structuredClone(state[existingIndex]);
         }
@@ -2435,12 +2470,11 @@
       if (!yes) return;
       const deletedId = Number(adminDraft.idNo);
       state = state.filter(x => Number(x.idNo) !== deletedId);
-      state = normalizeSequentialIds(state);
       saveState();
       if (state.length) {
-        const nextIndex = Math.max(0, Math.min(deletedId - 1, state.length - 1));
-        adminSelectedId = state[nextIndex].idNo;
-        adminDraft = structuredClone(state[nextIndex]);
+        const nextItem = sortItems(state)[0];
+        adminSelectedId = nextItem.idNo;
+        adminDraft = structuredClone(nextItem);
         isCreatingNew = false;
       } else {
         createNewDraft();
@@ -2466,7 +2500,7 @@
         try {
           const parsed = JSON.parse(fr.result);
           if (!Array.isArray(parsed)) throw new Error('bad format');
-          state = normalizeSequentialIds(parsed.map(item => ({
+          state = preserveItemIds(parsed.map(item => ({
             ...item,
             notReady: Boolean(item?.notReady),
             readyDate: item?.readyDate || '',
@@ -2491,7 +2525,7 @@
     function resetToInitial() {
       const yes = confirm(tr('resetConfirm'));
       if (!yes) return;
-      state = normalizeSequentialIds(structuredClone(INITIAL_IDS).map(item => ({
+      state = preserveItemIds(structuredClone(INITIAL_IDS).map(item => ({
         ...item,
         notReady: Boolean(item?.notReady),
         readyDate: item?.readyDate || '',
