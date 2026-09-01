@@ -57,6 +57,7 @@
       font-size:.95rem;
     }
     .ghost-btn:hover, .lang-btn:hover { background: var(--accent-soft); }
+    .ghost-btn[hidden] { display:none !important; }
     .primary-btn { background:#111; color:#fff; border-color:#111; }
     .primary-btn:hover { transform: translateY(-1px); }
     .danger-btn { background:#fff5f5; color:#b91c1c; border-color:#fecaca; }
@@ -320,7 +321,7 @@
           <button class="lang-btn active" id="langThBtn" type="button">ไทย</button>
           <button class="lang-btn" id="langEnBtn" type="button">EN</button>
         </div>
-        <button class="ghost-btn" id="openAdminBtn" type="button">Admin</button>
+        <button class="ghost-btn" id="openAdminBtn" type="button" hidden>Admin</button>
       </div>
     </div>
   </div>
@@ -2809,6 +2810,7 @@
     }
 
     bindEvents();
+    document.getElementById('openAdminBtn').hidden = new URLSearchParams(window.location.search).get('admin') !== '1';
     applyLanguage();
     openInfoModalFromUrl();
     bootSync();

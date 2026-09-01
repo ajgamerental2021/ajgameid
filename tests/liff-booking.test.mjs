@@ -31,3 +31,8 @@ test('customer page removes legacy result hint and footer output', () => {
   assert.doesNotMatch(html, /id="footerText"/);
   assert.doesNotMatch(html, /class="footer"/);
 });
+
+test('Admin entry is hidden unless the URL explicitly enables admin mode', () => {
+  assert.match(html, /id="openAdminBtn"[^>]*hidden/);
+  assert.match(html, /getElementById\('openAdminBtn'\)\.hidden = new URLSearchParams\(window\.location\.search\)\.get\('admin'\) !== '1'/);
+});
