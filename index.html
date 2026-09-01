@@ -852,7 +852,24 @@
     let lineIdentity = { ready: false, accessToken: '', userId: '' };
     let copyModalUsesLine = false;
     let isCreatingNew = false;
-    const requestedLang = new URLSearchParams(window.location.search).get('lang');
+    function getRequestedLanguage() {
+      const params = new URLSearchParams(window.location.search);
+      const direct = String(params.get('lang') || '').toLowerCase();
+      if (['th', 'en'].includes(direct)) return direct;
+
+      let liffState = String(params.get('liff.state') || params.get('liffState') || '');
+      for (let attempt = 0; attempt < 2 && liffState; attempt += 1) {
+        try {
+          const nested = new URL(liffState, window.location.origin).searchParams.get('lang');
+          if (['th', 'en'].includes(String(nested || '').toLowerCase())) return String(nested).toLowerCase();
+          liffState = decodeURIComponent(liffState);
+        } catch (error) {
+          break;
+        }
+      }
+      return '';
+    }
+    const requestedLang = getRequestedLanguage();
     let currentLang = ['th', 'en'].includes(requestedLang)
       ? requestedLang
       : (localStorage.getItem('aj_ps5_site_lang') || 'th');

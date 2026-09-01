@@ -38,6 +38,9 @@ test('Admin entry is hidden unless the URL explicitly enables admin mode', () =>
 });
 
 test('language query overrides the saved language for LIFF deep links', () => {
-  assert.match(html, /const requestedLang = new URLSearchParams\(window\.location\.search\)\.get\('lang'\)/);
+  assert.match(html, /function getRequestedLanguage\(\)/);
+  assert.match(html, /params\.get\('liff\.state'\)/);
+  assert.match(html, /new URL\(liffState, window\.location\.origin\)\.searchParams\.get\('lang'\)/);
+  assert.match(html, /const requestedLang = getRequestedLanguage\(\)/);
   assert.match(html, /\['th', 'en'\]\.includes\(requestedLang\)/);
 });
