@@ -44,3 +44,14 @@ test('language query overrides the saved language for LIFF deep links', () => {
   assert.match(html, /const requestedLang = getRequestedLanguage\(\)/);
   assert.match(html, /\['th', 'en'\]\.includes\(requestedLang\)/);
 });
+
+test('booking handoff carries availability type and the first HTTPS cover', () => {
+  assert.match(html, /bookingType: !item\?\.notReady && windowInfo\.mode === 'rent' \? 'immediate' : 'advance'/);
+  assert.match(html, /coverImageUrl: \(Array\.isArray\(item\?\.images\)/);
+});
+
+test('LIFF header displays the profile name instead of LINE Unique ID', () => {
+  assert.match(html, /displayName: String\(profile\?\.displayName/);
+  assert.match(html, /lineIdentity\.displayName \|\| '-'/);
+  assert.doesNotMatch(html, /textContent = `\$\{tr\('lineUniqueId'\)\}: \$\{lineIdentity\.userId\}`/);
+});
