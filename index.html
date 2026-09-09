@@ -1521,8 +1521,15 @@
       return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : '';
     }
 
+    function itemCreatedAtSortValue(item) {
+      const parsed = Date.parse(String(item?.createdAt || ''));
+      if (Number.isFinite(parsed)) return parsed;
+      if (Number(item?.idNo) === 67) return Date.parse('2026-09-09T00:00:02.000Z');
+      if (Number(item?.idNo) === 68) return Date.parse('2026-09-09T00:00:01.000Z');
+      return 0;
+    }
+
     function sortItems(items) {
-      const readyOrderOverrides = new Map([[67, 0], [68, 1]]);
       return [...items].sort((a, b) => {
         const aNotReady = Boolean(a?.notReady);
         const bNotReady = Boolean(b?.notReady);
@@ -1532,13 +1539,8 @@
           if (dateOrder) return dateOrder;
         }
         if (!aNotReady && !bNotReady) {
-          const aOverride = readyOrderOverrides.get(Number(a?.idNo));
-          const bOverride = readyOrderOverrides.get(Number(b?.idNo));
-          if (aOverride !== undefined || bOverride !== undefined) {
-            if (aOverride === undefined) return 1;
-            if (bOverride === undefined) return -1;
-            return aOverride - bOverride;
-          }
+          const createdOrder = itemCreatedAtSortValue(b) - itemCreatedAtSortValue(a);
+          if (createdOrder) return createdOrder;
         }
         return (Number(a?.idNo) || 0) - (Number(b?.idNo) || 0);
       });
@@ -2336,6 +2338,7 @@
       adminSelectedId = null;
       adminDraft = {
         idNo: Math.max(0, ...state.map(item => Number(item.idNo) || 0)) + 1,
+        createdAt: new Date().toISOString(),
         platform: 'PS5',
         title: '',
         searchTerms: [],
