@@ -1529,8 +1529,9 @@
         if (aNotReady && bNotReady) {
           const dateOrder = readyDateSortValue(b).localeCompare(readyDateSortValue(a));
           if (dateOrder) return dateOrder;
+          return (Number(a?.idNo) || 0) - (Number(b?.idNo) || 0);
         }
-        return (Number(a?.idNo) || 0) - (Number(b?.idNo) || 0);
+        return (Number(b?.idNo) || 0) - (Number(a?.idNo) || 0);
       });
     }
 
