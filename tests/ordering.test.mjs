@@ -28,22 +28,24 @@ test('admin ID order is editable and preserved', () => {
   assert.match(html, /const duplicate = state\.some/);
 });
 
-test('not-ready games sort first by farthest ready date, followed by newest ready IDs', () => {
+test('not-ready games sort first, then IDs 67 and 68, then ready IDs ascending', () => {
   assert.match(html, /if \(aNotReady !== bNotReady\) return aNotReady \? -1 : 1/);
   assert.match(html, /readyDateSortValue\(b\)\.localeCompare\(readyDateSortValue\(a\)\)/);
-  assert.match(html, /if \(aNotReady && bNotReady\)[\s\S]*?return \(Number\(a\?\.idNo\)[\s\S]*?- \(Number\(b\?\.idNo\)/);
-  assert.match(html, /return \(Number\(b\?\.idNo\)[\s\S]*?- \(Number\(a\?\.idNo\)/);
+  assert.match(html, /readyOrderOverrides = new Map\(\[\[67, 0\], \[68, 1\]\]\)/);
+  assert.match(html, /return \(Number\(a\?\.idNo\)[\s\S]*?- \(Number\(b\?\.idNo\)/);
 
   const sortItems = new Function(
     `${functionSource('readyDateSortValue')}\n${functionSource('sortItems')}\nreturn sortItems;`,
   )();
   const sorted = sortItems([
+    { idNo: 2, notReady: false },
+    { idNo: 3, notReady: false },
     { idNo: 67, notReady: false },
     { idNo: 68, notReady: false },
     { idNo: 70, notReady: true, readyDate: '2026-10-01' },
     { idNo: 69, notReady: true, readyDate: '2026-11-01' },
   ]);
-  assert.deepEqual(sorted.map(item => item.idNo), [69, 70, 68, 67]);
+  assert.deepEqual(sorted.map(item => item.idNo), [69, 70, 67, 68, 2, 3]);
 });
 
 test('not-ready games require a ready date in both languages', () => {
